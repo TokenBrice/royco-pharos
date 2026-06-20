@@ -178,18 +178,6 @@ export default async function HomePage() {
             <p className={styles.leadSub}>Safety combines base asset, exposure, and tranche structure into one score.</p>
           </div>
 
-          <div className={styles.gradeBook}>
-            <div className={styles.gradeBookHead}>
-              <h2>Grade book</h2>
-              <span className={styles.gradeBookCount}>{ratedCount} rated</span>
-            </div>
-            <DistributionStrip
-              grades={snapshot.tranches.map((t) => t.safetyGrade)}
-              label={`Safety grade distribution across ${trancheCount} tranches`}
-              showLegend
-            />
-          </div>
-
           {safest ? (
             <div className={styles.signals}>
               <SignalCard
@@ -234,6 +222,18 @@ export default async function HomePage() {
               ))}
             </div>
           ) : null}
+        </div>
+
+        <div className={styles.gradeBook}>
+          <div className={styles.gradeBookHead}>
+            <h2>Grade book</h2>
+            <span className={styles.gradeBookCount}>{ratedCount} rated</span>
+          </div>
+          <DistributionStrip
+            grades={snapshot.tranches.map((t) => t.safetyGrade)}
+            label={`Safety grade distribution across ${trancheCount} tranches`}
+            showLegend
+          />
         </div>
       </section>
 
