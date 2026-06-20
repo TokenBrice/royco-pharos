@@ -45,4 +45,11 @@ describe("token mapping resolution", () => {
     expect(r.pharosStablecoinId).toBe("acred-apollo-securitize");
     expect(r.decimals).toBe(6);
   });
+
+  it("maps Steakhouse bbqUSDC by the reviewed Ethereum contract address", () => {
+    const r = resolveMapping(1, "0xbeefff209270748ddd194831b3fa287a5386f5bc", "bbqUSDC");
+    expect(r.mappingStatus).toBe("mapped");
+    expect(r.pharosStablecoinId).toBe("bbqusdc-steakhouse");
+    expect(r.decimals).toBe(18);
+  });
 });
