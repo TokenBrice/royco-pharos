@@ -7,8 +7,8 @@ This directory is the minimal documentation base for the repo. It is deliberatel
 | Doc | Use it for |
 | --- | --- |
 | [Architecture](./architecture.md) | How data moves from Royco and Pharos into SQLite, then into pages and API routes. |
-| [Operations](./operations.md) | How to run, sync, verify, and troubleshoot the local prototype. |
-| [Deployment](./deployment.md) | Cloudflare Workers, D1, GitHub Actions, and `royco.pharos.watch` setup. |
+| [Operations](./operations.md) | How to run, sync, verify, and troubleshoot local SQLite development. |
+| [Deployment](./deployment.md) | Source of truth for Cloudflare Workers, D1, GitHub Actions, and `royco.pharos.watch` setup. |
 | [Scoring](./scoring.md) | The current scoring model, grade bands, status rules, and change-control expectations. |
 | [API](./api.md) | Public route contracts, cache behavior, IDs, and response conventions. |
 | [Change Map](./change-map.md) | Which files to inspect and which checks to run for common change types. |
@@ -39,4 +39,6 @@ This directory is the minimal documentation base for the repo. It is deliberatel
 
 ## Current Boundary
 
-This repo remains local-first for ingestion and write operations, but now includes the first Cloudflare deployment scaffold: OpenNext Worker config, D1 migrations, D1 read support, and GitHub workflows. Worker cron, D1 sync writes, Access-gated admin routes, public integration keys, wallet positions, alerts, and allocator look-through are still outside the current implementation boundary.
+This repo remains local-first for development, but production serving is implemented through OpenNext on Cloudflare Workers, D1 migrations, D1 read support, a scheduled D1 sync Worker, GitHub deploy workflows, and the `royco.pharos.watch` custom domain. Deployment details live in [Deployment](./deployment.md).
+
+Access-gated admin routes, public integration keys, wallet positions, alerts, and allocator look-through are still outside the current implementation boundary.

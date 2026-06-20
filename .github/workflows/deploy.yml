@@ -11,6 +11,19 @@ on:
         options:
           - staging
           - production
+      health_url:
+        description: Full web URL or /api/health URL to verify after deploy. Falls back to environment var ROYCOPHAROS_HEALTH_URL.
+        required: false
+        type: string
+      sync_url:
+        description: Optional sync Worker URL for the initial post-deploy sync. Falls back to environment var ROYCOPHAROS_SYNC_URL.
+        required: false
+        type: string
+      trigger_sync:
+        description: Trigger an initial sync before the health gate when a sync URL and token are available.
+        required: true
+        default: true
+        type: boolean
 
 concurrency:
   group: deploy-${{ inputs.environment }}
@@ -52,3 +65,26 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Trigger initial sync
+        if: ${{ inputs.trigger_sync }}
+        env:
+          SYNC_URL: ${{ inputs.sync_url || vars.ROYCOPHAROS_SYNC_URL }}
+          SYNC_ADMIN_TOKEN: ${{ secrets.SYNC_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$SYNC_URL" ]; then
+            echo "ROYCOPHAROS_SYNC_URL or sync_url input is required when trigger_sync is true." >&2
+            exit 1
+          fi
+          if [ -z "$SYNC_ADMIN_TOKEN" ]; then
+            echo "SYNC_ADMIN_TOKEN secret is required when trigger_sync is true." >&2
+            exit 1
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${SYNC_ADMIN_TOKEN}" \
+            "${SYNC_URL}"
+
+      - name: Verify deployed health
+        env:
+          ROYCOPHAROS_HEALTH_URL: ${{ inputs.health_url || vars.ROYCOPHAROS_HEALTH_URL }}
+        run: npm run smoke:health

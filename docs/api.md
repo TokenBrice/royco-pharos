@@ -2,7 +2,7 @@
 
 All API routes are implemented with Next.js route handlers under `src/app/api`.
 
-Routes read from the latest published SQLite snapshot through `src/lib/roycopharos/repository.ts`. They do not fetch Royco or Pharos live during request handling.
+Routes read from the latest published snapshot through `src/lib/roycopharos/repository.ts`: local development uses SQLite, while Cloudflare production uses D1 when `ROYCOPHAROS_STORAGE=d1`. They do not fetch Royco or Pharos live during request handling.
 
 ## Response Conventions
 
@@ -41,6 +41,17 @@ Freshness statuses:
 | `degraded` | Outside the fresh window but not stale. |
 | `stale` | Beyond the stale threshold. |
 
+Error responses are JSON and use `Cache-Control: no-store`:
+
+```json
+{
+  "error": "snapshot_unavailable",
+  "message": "RoycoPharos production D1 snapshot is unavailable. Run migrations and publish a sync before serving traffic."
+}
+```
+
+Routes that require a published snapshot return status `503` with `error: "snapshot_unavailable"` until D1 has a published sync. Detail routes still return `404` for valid snapshots where the requested market or tranche does not exist.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -48,6 +59,8 @@ Freshness statuses:
 Returns operational health, counts, freshness, and latest sync-run summary.
 
 Cache header: `Cache-Control: no-store`
+
+Status is `200` when `ok: true`; otherwise it is `503` with the same JSON health body so deploy smoke checks can fail with diagnostics.
 
 Important fields:
 
@@ -211,7 +224,7 @@ Response shape:
 ```json
 {
   "data": {
-    "version": "royco-opportunity-v0.5",
+    "version": "royco-opportunity-v0.6",
     "safetyScoreName": "Royco Safety Score",
     "opportunityScoreName": "Royco Opportunity Score",
     "safetyFormula": "clamp(round(pharosBaseScore - exposureHaircut + seniorCushionCredit - trancheStructureHaircut), 0, 100)",

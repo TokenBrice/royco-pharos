@@ -37,11 +37,13 @@ The default sync uses recorded Royco Dawn fixture data and recorded Pharos fixtu
 | `npm run sync:royco` | Refresh Royco data while reusing cached Pharos data or fixtures. |
 | `npm run sync:pharos` | Refresh Pharos data against the recorded Royco fixture market set. |
 | `npm run status` | Print health, freshness, counts, last sync run, and DB path. |
-| `npm run calibrate` | Score the full pull without writing the DB and print calibration checks. |
+| `npm run calibrate` | Score the full pull without writing the DB and print calibration checks. Exits non-zero if any anchor fails. |
+| `npm run audit:runtime` | Run `npm audit --omit=dev` for runtime dependency exposure. |
+| `npm run smoke:health -- <url>` | Verify a deployed `/api/health` response is JSON and reports `ok: true`. |
 
 ## Environment Variables
 
-Use `.env.local` for local overrides.
+Standalone CLI scripts run through `tsx` and read `process.env` directly. Use inline or exported shell variables for `npm run sync`, `npm run status`, and `npm run calibrate`. `.env.local` is still useful for Next.js local app/runtime behavior, but it is not loaded automatically by these CLI scripts.
 
 | Variable | Default | Effect |
 | --- | --- | --- |
@@ -67,6 +69,15 @@ Temporary isolated DB:
 
 ```bash
 ROYCOPHAROS_DB_PATH=/tmp/roycopharos.db npm run sync
+```
+
+If you prefer a local env file for CLI work, source it in your shell before running commands:
+
+```bash
+set -a
+. ./.env.local
+set +a
+npm run sync
 ```
 
 ## What Sync Does
@@ -139,10 +150,10 @@ For a broader local health pass:
 npm run typecheck
 npm run test
 npm run build
-npm audit --omit=dev
+npm run audit:runtime
 ```
 
-`npm audit --omit=dev` should remain clean for runtime dependencies. The project currently pins vulnerable transitive runtime packages with npm `overrides` only when the owning package has not shipped a safe direct version.
+`npm run audit:runtime` should remain clean for runtime dependencies. The project currently pins vulnerable transitive runtime packages with npm `overrides` only when the owning package has not shipped a safe direct version.
 
 For scoring, data-shape, or methodology changes:
 
@@ -169,13 +180,27 @@ rm data/roycopharos.db
 npm run sync
 ```
 
-Do this only for local development data. The prototype does not yet include production migrations.
+Do this only for local development data.
+
+Production schema changes are handled through Cloudflare D1 migrations in `migrations/` and the commands documented in [Deployment](./deployment.md). Do not reset a remote D1 database as a substitute for a migration.
+
+## Cloudflare Runtime Checks
+
+The web Worker serves the Next.js app and reads D1 when `ROYCOPHAROS_STORAGE=d1`. It does not carry Royco or Pharos upstream read variables; those belong to the sync Worker in `wrangler.sync.jsonc`.
+
+Post-deploy health is checked with:
+
+```bash
+npm run smoke:health -- https://royco.pharos.watch
+```
+
+The smoke command appends `/api/health` when given a host URL, requires a JSON response, and fails unless the response includes `ok: true`.
 
 ## Local Artifact Hygiene
 
 Generated data and diagnostics should stay local:
 
-- `data/*.db`, WAL/SHM files, `.next`, `node_modules`, `test-results`, `*.tsbuildinfo`, and root-level screenshot PNGs are ignored.
+- `data/*.db`, WAL/SHM files, `.next`, `node_modules`, `test-results`, `.impeccable/critique/`, `*.tsbuildinfo`, and root-level screenshot PNGs are ignored.
 - Keep `.env.local` local. Commit only `.env.example`.
 - Prefer `npm run status` over opening the SQLite DB for routine health checks; it exercises the same repository path the UI and API routes use.
 
@@ -187,6 +212,6 @@ Generated data and diagnostics should stay local:
 | Sync returns `skipped` | Another sync lock is active. Wait, or inspect `<db-dir>/.sync.lock` if the prior process crashed. |
 | Candidate does not publish | Check `lastRun.errorCode` in `npm run status`. The prior published snapshot should still be served. |
 | Everything is `NR` | Check Pharos mode, `PHAROS_API_KEY`, mapping conflicts, and `nrReason` in `/api/tranches`. |
-| Pharos live mode degrades | The client falls back to cached underlyings or fixtures on fetch failure. Check `lastRun` in `npm run status` and the latest `royco_sync_runs.metadata_json` row in SQLite. |
+| Pharos live mode degrades | The client falls back only to cached underlyings still inside the stale-if-error window; otherwise fixture mode is recorded and production D1 publishing is held unless explicitly allowed. Check `lastRun` in `npm run status` and the latest `royco_sync_runs.metadata_json` row. |
 | Live Royco mode returns fewer rows | Confirm Dawn response shape with `ROYCO_DAWN_FIXTURE_PATH` and inspect parse drops. |
 | History charts look short | History is real observed data. A fresh DB has only one point per sync. |

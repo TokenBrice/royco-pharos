@@ -19,7 +19,7 @@ npm run status
 npm run dev
 ```
 
-The default sync uses local fixtures. Live Royco or Pharos reads are opt-in through `.env.local`; never commit real keys or local env files.
+The default sync uses local fixtures. Live Royco or Pharos reads are opt-in through exported or inline shell env vars for CLI scripts; `.env.local` is only loaded by the local Next.js app/runtime. Never commit real keys or local env files.
 
 ## Definition of Done
 

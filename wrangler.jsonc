@@ -17,9 +17,7 @@
 	},
 	"vars": {
 		"ENVIRONMENT": "production",
-		"ROYCOPHAROS_STORAGE": "d1",
-		"ROYCO_DAWN_LIVE": "1",
-		"PHAROS_API_BASE": "https://api.pharos.watch"
+		"ROYCOPHAROS_STORAGE": "d1"
 	},
 	"d1_databases": [
 		{
@@ -41,9 +39,7 @@
 			"routes": [],
 			"vars": {
 				"ENVIRONMENT": "staging",
-				"ROYCOPHAROS_STORAGE": "d1",
-				"ROYCO_DAWN_LIVE": "1",
-				"PHAROS_API_BASE": "https://api.pharos.watch"
+				"ROYCOPHAROS_STORAGE": "d1"
 			},
 			"d1_databases": [
 				{

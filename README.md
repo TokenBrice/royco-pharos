@@ -18,7 +18,7 @@ npm run status
 npm run dev
 ```
 
-The prototype uses Node's built-in SQLite driver and defaults to `data/roycopharos.db`. Fixture mode is available by default. Add `PHAROS_API_KEY` to `.env.local` only when testing live Pharos API reads.
+The prototype uses Node's built-in SQLite driver and defaults to `data/roycopharos.db`. Fixture mode is available by default. Standalone CLI scripts such as `npm run sync` read exported or inline shell env vars; `.env.local` is for Next.js local app/runtime behavior, not automatic CLI loading.
 
 `npm run sync` publishes a candidate snapshot into SQLite, validates that at least 18 direct tranches are present, and leaves the prior published snapshot in place if the candidate is undersized. The Next.js UI and API routes read from the published SQLite rows, not from in-memory fixtures.
 
@@ -51,6 +51,8 @@ The base docs live in [`docs/`](./docs/README.md):
 - [`docs/scoring.md`](./docs/scoring.md) documents the current scoring model and change-control expectations.
 - [`docs/api.md`](./docs/api.md) lists the JSON routes and response conventions.
 
-## Prototype Boundaries
+## Runtime Boundaries
 
-This repo is local-first. Cloudflare Pages, Worker cron, D1 deployment, Access-gated admin endpoints, public integration API keys, and allocator look-through are deferred.
+Local development remains SQLite-first. Production deployment is implemented through Cloudflare Workers, Cloudflare D1, a scheduled sync Worker, and the `royco.pharos.watch` custom domain. Request handlers still never fetch Royco or Pharos live; upstream reads belong to the local sync CLI or the Cloudflare sync Worker.
+
+Access-gated admin routes, public integration API keys, wallet positions, alerts, and allocator look-through remain outside the current implementation boundary. See [`docs/deployment.md`](./docs/deployment.md) for the production runbook.

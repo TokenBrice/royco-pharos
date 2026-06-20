@@ -15,6 +15,8 @@ GitHub Actions
   -> D1 migrations
   -> web Worker deploy
   -> sync Worker deploy
+  -> optional manual sync trigger
+  -> /api/health smoke gate
   -> royco.pharos.watch
        reads Cloudflare D1 binding DB
 Cloudflare Cron
@@ -24,6 +26,8 @@ Cloudflare Cron
 ```
 
 Local development still uses `node:sqlite` at `data/roycopharos.db`. Production reads use Cloudflare D1 when `ROYCOPHAROS_STORAGE=d1`.
+
+The web Worker is read-only with respect to upstream services: it reads D1 through the `DB` binding and does not carry Royco Dawn or Pharos upstream variables. The sync Worker owns `ROYCO_DAWN_LIVE`, `PHAROS_API_BASE`, `PHAROS_API_KEY`, cron execution, manual sync, and D1 publishing.
 
 ## Required Cloudflare Resources
 
@@ -58,8 +62,16 @@ Set these repository or environment secrets:
 | --- | --- |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account target for Wrangler |
 | `CLOUDFLARE_API_TOKEN` | Deploy and D1 migration access |
+| `SYNC_ADMIN_TOKEN` | Optional GitHub environment secret used by the deploy workflow to trigger the sync Worker before the health gate |
 
 The Cloudflare API token needs permission to deploy Workers and apply D1 migrations for the account.
+
+Set these GitHub environment variables for staging and production, or provide them as workflow dispatch inputs:
+
+| Variable | Purpose |
+| --- | --- |
+| `ROYCOPHAROS_HEALTH_URL` | Web host or full `/api/health` URL checked after deploy |
+| `ROYCOPHAROS_SYNC_URL` | Sync Worker URL used for the optional initial sync trigger, including `?mode=all` if desired |
 
 ## First Staging Deploy
 
@@ -79,7 +91,11 @@ curl -X POST \
   "https://roycopharos-sync-staging.<your-workers-subdomain>.workers.dev/?mode=all"
 ```
 
-If the workers.dev subdomain is disabled, use the Cloudflare dashboard to run the scheduled Worker once. Validate `/api/health` on the staging web Worker after the sync publishes.
+If the workers.dev subdomain is disabled, use the Cloudflare dashboard to run the scheduled Worker once. Validate `/api/health` on the staging web Worker after the sync publishes:
+
+```bash
+npm run smoke:health -- https://<staging-web-host>
+```
 
 ## First Production Deploy
 
@@ -106,8 +122,10 @@ After deploy, trigger an initial production sync and verify health before treati
 curl -X POST \
   -H "Authorization: Bearer <production-sync-admin-token>" \
   "https://roycopharos-sync.<your-workers-subdomain>.workers.dev/?mode=all"
-curl "https://royco.pharos.watch/api/health"
+npm run smoke:health -- "https://royco.pharos.watch"
 ```
+
+The manual GitHub deploy workflow can automate the same sequence. Set `ROYCOPHAROS_SYNC_URL`, `ROYCOPHAROS_HEALTH_URL`, and `SYNC_ADMIN_TOKEN` on the selected GitHub environment, or provide `sync_url` and `health_url` when dispatching. The final health step fails unless `/api/health` returns JSON with `ok: true`.
 
 ## Build And Preview
 
@@ -115,6 +133,7 @@ curl "https://royco.pharos.watch/api/health"
 npm run typecheck
 npm run test
 npm run build
+npm run audit:runtime
 npm run build:worker
 npx wrangler deploy --dry-run --env=""
 npx wrangler deploy --config wrangler.sync.jsonc --dry-run --env=""
@@ -137,10 +156,12 @@ Implemented now:
 - D1 write path for the Cloudflare sync Worker.
 - Scheduled Worker config for periodic Royco Dawn and Pharos refreshes.
 - GitHub CI and manual deployment workflows.
+- Runtime dependency audit in CI.
+- Post-deploy `/api/health` smoke gate.
 
 Still required before public launch:
 
 - Production-safe publish pointer or equivalent generation model.
-- External smoke tests after a real D1 snapshot is published.
+- A real staging and production snapshot validated through the deploy health gate.
 
 Do not publicly route traffic to `royco.pharos.watch` until D1 has a validated published snapshot and `/api/health` returns `ok: true`.

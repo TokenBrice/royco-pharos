@@ -17,6 +17,7 @@ test-results
 /*.png
 .playwright-cli
 .playwright-mcp
+.impeccable/critique/
 
 # impeccable-live-ignore-start
 .impeccable/hook.cache.json

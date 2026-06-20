@@ -10,6 +10,13 @@ RoycoPharos has one core loop:
 
 Request handlers do not call Royco or Pharos directly. Upstream reads happen in the sync path.
 
+There are two deployed Cloudflare Workers:
+
+- The web Worker runs the OpenNext app, reads Cloudflare D1 through the `DB` binding, and serves UI/API requests.
+- The sync Worker runs cron/manual sync, reads Royco Dawn and Pharos, and publishes validated snapshots to D1.
+
+Local development uses the same domain model with `node:sqlite` at `data/roycopharos.db`.
+
 ## Runtime Shape
 
 | Layer | Main files | Responsibility |
@@ -83,6 +90,8 @@ Pharos source modes:
 | Live Pharos | `PHAROS_API_KEY=ph_live_...` | Fetches `/api/stablecoins` and `/api/report-cards` with `X-API-Key`. |
 | Stale-if-error | Live key plus failed fetch and cached data | Uses prior cached underlyings instead of failing the sync. |
 
+In production D1 syncs (`ENVIRONMENT=production`), fixture-derived Royco or Pharos candidates are recorded as degraded sync attempts but do not replace a prior published snapshot unless `ALLOW_FIXTURE_PUBLISH=1` is explicitly set. Stale-if-error uses only cached Pharos underlyings that are still inside the bounded stale window.
+
 ## Key Invariants
 
 - Keep all 18 direct Royco Dawn tranches visible whenever a complete candidate is available.
@@ -91,7 +100,7 @@ Pharos source modes:
 - Allow Senior Safety to exceed the whole-vault Pharos score only through explicit buffer-depth credit.
 - Missing underlying Pharos Safety Score means `NR`, not a silent low grade.
 - Missing non-fatal Royco fields produce `low_confidence` with uncertainty penalties.
-- UI and API surfaces read the same published SQLite snapshot.
+- UI and API surfaces read the same published snapshot: SQLite locally, D1 in production.
 - Freshness is explicit for Royco, Pharos, and the computed score.
 
 ## Database
