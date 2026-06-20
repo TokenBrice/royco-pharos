@@ -1,6 +1,6 @@
 # Scoring
 
-Current methodology version: `royco-opportunity-v0.5`.
+Current methodology version: `royco-opportunity-v0.6`.
 
 The scoring engine lives in `src/lib/roycopharos/scoring.ts`. Tests live in `src/lib/roycopharos/scoring.test.ts`. The methodology page renders its bands and factor rows from the same constants to reduce drift.
 
@@ -159,7 +159,7 @@ Each row also has a severity:
 | Status | Rule |
 | --- | --- |
 | `computed` | Required Pharos vault input exists and no non-fatal missing-data uncertainty was triggered. |
-| `low_confidence` | Required Pharos vault score exists, but non-fatal Royco fields are missing. |
+| `low_confidence` | Required Pharos vault score exists, but non-fatal Royco fields are missing or uncertain. This includes missing status, coverage, utilization, tranche TVL, drawdown data, unknown venue tier, or no positive current/7d APY. |
 | `stale` | The input explicitly marks the score stale. |
 | `nr` | Underlying Pharos Safety Score is missing, or tranche side is invalid. |
 

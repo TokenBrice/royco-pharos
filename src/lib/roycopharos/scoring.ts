@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { EXPOSURE_HAIRCUT_CAP, exposureRiskFor } from "./exposure";
 import type { ApySource, GradeBand, MarketStatus, PenaltyBreakdownRow, ScoreInput, ScoreResult, TrancheSide } from "./types";
 
-// Royco Opportunity v0.5 — three-layer risk model.
+// Royco Opportunity v0.6 — three-layer risk model.
 //
 // The Pharos vault/base-asset score is Layer 1 and is shown verbatim. RoycoPharos adds:
 //   Layer 2 exposure score  = curated strategy/protocol risk, with a bounded exposure haircut
@@ -14,7 +14,7 @@ import type { ApySource, GradeBand, MarketStatus, PenaltyBreakdownRow, ScoreInpu
 // Seniors can score above the vault when the Junior buffer is thick; Juniors carry first-loss risk.
 // Exposure and structure haircuts are bounded separately and combined with diminishing returns.
 
-export const METHODOLOGY_VERSION = "royco-opportunity-v0.5";
+export const METHODOLOGY_VERSION = "royco-opportunity-v0.6";
 
 type SidePair = readonly [senior: number, junior: number];
 
@@ -417,25 +417,32 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
   );
 
   // --- Drawdown ---
-  const drawdownPct = input.drawdownRatio == null ? 0 : input.drawdownRatio * 100;
+  const drawdownMissing = input.drawdownRatio == null;
+  if (drawdownMissing) lowConfidence = true;
+  const drawdownPct = drawdownMissing ? 0 : input.drawdownRatio! * 100;
   const drawdownPenalty = Math.min(pick(side, STRUCTURE_WEIGHTS.drawdown.cap), drawdownPct * pick(side, STRUCTURE_WEIGHTS.drawdown.factor));
   rows.push(
     row({
       key: "drawdown",
       label: "Drawdown",
-      riskCategory: "loss-risk",
+      riskCategory: drawdownMissing ? "data-confidence" : "loss-risk",
       sourceField: "drawdown_ratio",
       value: input.drawdownRatio,
       threshold: 0,
-      direction: "higher-worse",
+      direction: drawdownMissing ? "missing" : "higher-worse",
       rawPenalty: drawdownPenalty,
-      missing: false,
+      missing: drawdownMissing,
       observedAt: input.observedAt,
-      explanation: drawdownPenalty > 0 ? "Observed drawdown increases tranche-layer risk." : "No drawdown penalty is applied.",
+      explanation: drawdownMissing
+        ? "Drawdown data is missing, so the score is marked low-confidence."
+        : drawdownPenalty > 0
+          ? "Observed drawdown increases tranche-layer risk."
+          : "No drawdown penalty is applied.",
     }),
   );
 
   // --- Venue tier (coarse placeholder, low weight) ---
+  if (input.venueTier === "unknown") lowConfidence = true;
   const venuePenalty =
     input.venueTier === "low"
       ? 0
@@ -449,11 +456,11 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
       key: "venue-tier",
       label: "Venue tier",
       riskLayer: "exposure",
-      riskCategory: "access-friction",
+      riskCategory: input.venueTier === "unknown" ? "data-confidence" : "access-friction",
       sourceField: "venue_tier",
       value: input.venueTier,
       threshold: "low",
-      direction: "state",
+      direction: input.venueTier === "unknown" ? "missing" : "state",
       rawPenalty: venuePenalty,
       missing: input.venueTier === "unknown",
       observedAt: input.observedAt,
@@ -517,6 +524,26 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
     );
   }
 
+  const apy = resolveApyPct(input.apyCurrentPct, input.apy7dPct);
+  if (apy.source === "none") {
+    lowConfidence = true;
+    rows.push(
+      row({
+        key: "apy-availability",
+        label: "APY availability",
+        riskCategory: "data-confidence",
+        sourceField: "apy_current_pct",
+        value: apy.value,
+        threshold: "positive current or 7d APY",
+        direction: "missing",
+        rawPenalty: 0,
+        missing: true,
+        observedAt: input.observedAt,
+        explanation: "No positive current or 7d APY is available, so Opportunity is low-confidence.",
+      }),
+    );
+  }
+
   // --- Aggregate: three-layer Safety and numeric Opportunity ---
   const cushionCredit = seniorCushionCredit(input);
   const exposureRows = rows.filter((item) => item.riskLayer === "exposure");
@@ -532,7 +559,6 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
     ...reconcileAppliedPenalties(structureRows, round1(structureHaircut)),
   ];
 
-  const apy = resolveApyPct(input.apyCurrentPct, input.apy7dPct);
   const opportunityYield = apy.value == null ? null : round2(apy.value * Math.pow(safetyScore / 100, OPPORTUNITY_GAMMA));
   const opportunityScore = opportunityScoreFromYield(opportunityYield);
 

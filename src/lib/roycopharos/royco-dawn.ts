@@ -63,6 +63,7 @@ export interface RoycoDawnLoadResult {
   mode: RoycoDawnLoadMode;
   markets: RoycoMarketFixture[];
   upstreamCount: number;
+  parseErrorCount: number;
   rawPayloadSampleJson: string;
   warning: string | null;
 }
@@ -80,6 +81,7 @@ export async function loadRoycoDawnMarkets(options: RoycoDawnLoadOptions = {}): 
       mode: "fixture-file",
       markets,
       upstreamCount: markets.length,
+      parseErrorCount: 0,
       rawPayloadSampleJson: JSON.stringify({ fixturePath, markets: markets.map((market) => market.marketId) }).slice(0, 12_000),
       warning: null,
     };
@@ -128,17 +130,17 @@ async function fetchLiveRoycoDawnMarkets(): Promise<RoycoDawnLoadResult> {
     if (pageMarkets.length < ROYCO_DAWN_PAGE_SIZE || (count != null && pageIndex * ROYCO_DAWN_PAGE_SIZE >= count)) break;
   }
 
-  const markets = allMarkets.flatMap((market) => {
-    const parsed = parseRoycoMarket(market);
-    return parsed ? [parsed] : [];
-  });
+  const parsedMarkets = allMarkets.map((market) => parseRoycoMarket(market));
+  const markets = parsedMarkets.filter((market): market is RoycoMarketFixture => market != null);
+  const parseErrorCount = parsedMarkets.length - markets.length;
 
   return {
     mode: "live",
     markets,
     upstreamCount: count ?? allMarkets.length,
+    parseErrorCount,
     rawPayloadSampleJson: JSON.stringify({ count, sample: allMarkets.slice(0, 5) }).slice(0, 12_000),
-    warning: null,
+    warning: parseErrorCount > 0 ? `${parseErrorCount} Royco Dawn market row(s) could not be parsed.` : null,
   };
 }
 
@@ -147,6 +149,7 @@ function recordedFixtureResult(warning: string | null): RoycoDawnLoadResult {
     mode: "recorded-fixture",
     markets: ROYCO_MARKET_FIXTURES,
     upstreamCount: ROYCO_MARKET_FIXTURES.length,
+    parseErrorCount: 0,
     rawPayloadSampleJson: JSON.stringify({
       source: "recorded-dawn-fixture",
       markets: ROYCO_MARKET_FIXTURES.map((market) => ({ chainId: market.chainId, marketId: market.marketId, name: market.name })),

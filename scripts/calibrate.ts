@@ -172,3 +172,4 @@ check(
 );
 
 console.log(`\n${failures === 0 ? "✓ all anchors passed" : `✗ ${failures} anchor(s) failed`}`);
+process.exitCode = failures === 0 ? 0 : 1;

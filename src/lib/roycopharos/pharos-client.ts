@@ -50,17 +50,25 @@ export async function loadPharosUnderlyings(
       fetchPharosEndpoint("/api/stablecoins", apiKey, fetchedAt, options.apiBase),
       fetchPharosEndpoint("/api/report-cards", apiKey, fetchedAt, options.apiBase),
     ]);
+    const underlyings = buildUnderlyingSummaries(requiredIds, stablecoins.body, reportCards.body, fetchedAt);
+    const missingSafetyIds = underlyings
+      .filter((underlying) => underlying.underlyingSafetyScore == null)
+      .map((underlying) => underlying.pharosStablecoinId ?? underlying.symbol);
     return {
       mode: "live",
-      underlyings: buildUnderlyingSummaries(requiredIds, stablecoins.body, reportCards.body, fetchedAt),
+      underlyings,
       cacheEntries: [stablecoins.cacheEntry, reportCards.cacheEntry],
-      warning: null,
+      warning: missingSafetyIds.length > 0 ? `Missing live Pharos Safety Score for ${missingSafetyIds.join(", ")}.` : null,
     };
   } catch (error) {
     const warning = `Live Pharos fetch failed: ${error instanceof Error ? error.message : String(error)}`;
-    const fallback = fallbackUnderlyings.length > 0 ? fallbackUnderlyings : fixtureUnderlyings(requiredIds);
+    const staleFallback = fallbackUnderlyings.filter((underlying) => {
+      if (underlying.fetchedAt == null) return false;
+      return underlying.fetchedAt + STALE_IF_ERROR_SECONDS >= fetchedAt;
+    });
+    const fallback = staleFallback.length > 0 ? staleFallback : fixtureUnderlyings(requiredIds);
     return {
-      mode: fallbackUnderlyings.length > 0 ? "stale-if-error" : "fixture",
+      mode: staleFallback.length > 0 ? "stale-if-error" : "fixture",
       underlyings: fallback,
       cacheEntries: [errorCacheEntry("/api/stablecoins", fetchedAt, warning), errorCacheEntry("/api/report-cards", fetchedAt, warning)],
       warning,
@@ -151,8 +159,8 @@ function buildUnderlyingSummaries(requiredIds: string[], stablecoinsBody: JsonRe
       name: stringValue(coin, "name") ?? stringValue(card, "name") ?? fixture?.name ?? id,
       price: numberValue(coin, "price"),
       supplyUsd: supplyUsd(coin) ?? fixture?.supplyUsd ?? null,
-      underlyingSafetyScore: numberValue(card, "overallScore") ?? fixture?.underlyingSafetyScore ?? null,
-      underlyingSafetyGrade: stringValue(card, "overallGrade") ?? fixture?.underlyingSafetyGrade ?? null,
+      underlyingSafetyScore: numberValue(card, "overallScore"),
+      underlyingSafetyGrade: stringValue(card, "overallGrade"),
       summary: stringValue(dependencyRisk, "detail") ?? fixture?.summary ?? "Live Pharos report card summary unavailable.",
       sourceUpdatedAt: updatedAtFromBody(reportCardsBody) ?? updatedAtFromBody(stablecoinsBody) ?? fetchedAt,
       fetchedAt,

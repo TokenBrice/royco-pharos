@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSnapshot, safetyGradeFromScore, scoreTranche } from ".";
 
-describe("RoycoPharos scoring (v0.5)", () => {
+describe("RoycoPharos scoring (v0.6)", () => {
   it("computes a strong Senior to an A-band Safety score without a first-loss term", () => {
     const snapshot = buildSnapshot(1_770_000_000);
     const senior = snapshot.tranches.find((tranche) => tranche.marketName === "Auto Finance autoUSD" && tranche.side === "senior");
@@ -115,6 +115,8 @@ describe("RoycoPharos scoring (v0.5)", () => {
         coverageRatio: null,
         utilizationRatio: null,
         tvlUsd: null,
+        drawdownRatio: null,
+        venueTier: "unknown",
       }),
     );
     expect(result.scoreStatus).toBe("low_confidence");
@@ -123,13 +125,23 @@ describe("RoycoPharos scoring (v0.5)", () => {
     expect(result.penaltyBreakdown.find((row) => row.key === "coverage")?.missing).toBe(true);
     expect(result.penaltyBreakdown.find((row) => row.key === "utilization")?.missing).toBe(true);
     expect(result.penaltyBreakdown.find((row) => row.key === "tvl")?.missing).toBe(true);
+    expect(result.penaltyBreakdown.find((row) => row.key === "drawdown")?.missing).toBe(true);
+    expect(result.penaltyBreakdown.find((row) => row.key === "venue-tier")?.missing).toBe(true);
+  });
+
+  it("marks missing positive APY as low-confidence without changing Safety to NR", () => {
+    const result = scoreTranche(baseInput({ apyCurrentPct: 0, apy7dPct: 0 }));
+    expect(result.scoreStatus).toBe("low_confidence");
+    expect(result.safetyScore).toEqual(expect.any(Number));
+    expect(result.apySource).toBe("none");
+    expect(result.penaltyBreakdown.find((row) => row.key === "apy-availability")?.missing).toBe(true);
   });
 
   it("falls back to 7d APY when current APY is zero", () => {
     const snapshot = buildSnapshot(1_770_000_000);
     const zero = snapshot.tranches.find((entry) => entry.marketName === "Ember eEarn" && entry.side === "senior");
     expect(zero?.apyCurrentPct).toBe(0);
-    expect(zero?.scoreStatus).toBe("computed");
+    expect(zero?.scoreStatus).not.toBe("nr");
     expect(zero?.apySource).toBe("7d");
     expect(zero?.apyUsedPct).toBeGreaterThan(0);
   });
