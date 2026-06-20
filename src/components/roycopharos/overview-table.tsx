@@ -63,6 +63,40 @@ function hasOpportunityGap(t: TrancheRow) {
   return t.safetyScore != null && t.opportunityScore != null && t.opportunityScore - t.safetyScore >= 20;
 }
 
+function flagReason(reasons: string[]) {
+  const priority = [
+    "nr",
+    "stale",
+    "conflict",
+    "low_confidence",
+    "unmapped",
+    "coverage_pressure",
+    "utilization_pressure",
+    "market_status",
+  ];
+  const reason = priority.find((item) => reasons.includes(item)) ?? reasons[0];
+  switch (reason) {
+    case "nr":
+      return "Underlying score missing";
+    case "stale":
+      return "Source data is stale";
+    case "conflict":
+      return "Token mapping conflict";
+    case "low_confidence":
+      return "Uncertainty penalties applied";
+    case "unmapped":
+      return "Base asset unmapped";
+    case "coverage_pressure":
+      return "Junior buffer is thin";
+    case "utilization_pressure":
+      return "Utilization near limit";
+    case "market_status":
+      return "Market status affects score";
+    default:
+      return null;
+  }
+}
+
 function matchesQuery(t: TrancheRow, query: string) {
   if (!query) return true;
   const terms = [
@@ -286,7 +320,9 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
 
               {g.tranches.map((t, i) => {
                 const lowLiquidity = t.tvlUsd != null && t.tvlUsd < 100_000;
-                const flagged = isFlagged(t);
+                const flags = classifyTrancheFlags(t);
+                const flagged = flags.attention;
+                const reason = flagReason(flags.reasons);
                 const isLast = i === g.tranches.length - 1;
                 const cls = [styles.subRow, lowLiquidity ? styles.lowLiquidity : "", flagged ? styles.flagged : ""]
                   .filter(Boolean)
@@ -368,7 +404,15 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
                           status={t.scoreStatus}
                           showLabels={false}
                         />
-                        {t.scoreStatus !== "computed" ? <DataBadge value={t.scoreStatus} /> : null}
+                        {t.scoreStatus !== "computed" ? (
+                          <span className={styles.scoreFlag}>
+                            <DataBadge value={t.scoreStatus} />
+                            {reason ? <span>{reason}</span> : null}
+                          </span>
+                        ) : null}
+                        <Link className={styles.scoreProof} href="/methodology#two-scores">
+                          Why?
+                        </Link>
                       </span>
                     </td>
                   </tr>
@@ -388,15 +432,20 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
       </div>
 
       <div className={styles.mobileBook} aria-label="Mobile ranked tranche evidence">
-        {groups.map((g) => (
-          <section key={g.marketKey} className={styles.mobileGroup}>
-            <div className={styles.mobileMarket}>
+        {groups.map((g, groupIndex) => {
+          const flaggedCount = g.tranches.filter(isFlagged).length;
+          const hasHardFlag = g.tranches.some((tranche) => classifyTrancheFlags(tranche).hard);
+          const openByDefault = hasFilters || groupIndex < 2 || hasHardFlag;
+          return (
+          <details key={g.marketKey} className={styles.mobileGroup} open={openByDefault}>
+            <summary className={styles.mobileMarket}>
               <div className={styles.mobileMarketTitle}>
-                <Link href={`/markets/${encodeURIComponent(g.marketKey)}`}>
-                  <strong>{g.marketName}</strong>
-                </Link>
+                <strong>{g.marketName}</strong>
                 <span className={styles.mobileChain}>{g.chainSlug}</span>
                 <StatusDot status={g.statusNormalized} />
+                <span className={styles.mobileFold}>
+                  {g.tranches.length} seats{flaggedCount ? ` · ${flaggedCount} flagged` : ""}
+                </span>
               </div>
               <div className={styles.mobileMarketVitals}>
                 <span>
@@ -413,11 +462,14 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
                   <b className="num">{formatRatio(g.coverageRatio)}</b>
                 </span>
               </div>
-            </div>
+            </summary>
 
+            <div className={styles.mobileTrancheList}>
             {g.tranches.map((t) => {
               const lowLiquidity = t.tvlUsd != null && t.tvlUsd < 100_000;
-              const flagged = isFlagged(t);
+              const flags = classifyTrancheFlags(t);
+              const flagged = flags.attention;
+              const reason = flagReason(flags.reasons);
               return (
                 <Link
                   href={`/markets/${encodeURIComponent(t.marketKey)}`}
@@ -459,6 +511,7 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
                     {t.scoreStatus !== "computed" ? <DataBadge value={t.scoreStatus} /> : null}
                     {t.mappingStatus !== "mapped" ? <DataBadge value={t.mappingStatus} /> : null}
                     {lowLiquidity ? <span className={styles.thin}>Thin liquidity</span> : null}
+                    {reason ? <span className={styles.mobileReason}>Why: {reason}</span> : null}
                   </span>
 
                   <span className={styles.mobileEvidence}>
@@ -487,8 +540,10 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
                 </Link>
               );
             })}
-          </section>
-        ))}
+            </div>
+          </details>
+          );
+        })}
         {groups.length === 0 ? <p className={styles.mobileEmpty}>No tranches match these filters.</p> : null}
       </div>
     </div>

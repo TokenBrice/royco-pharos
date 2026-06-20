@@ -18,7 +18,7 @@ const mono = IBM_Plex_Mono({
 const themeScript = `(function(){try{var t=localStorage.getItem('rp-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();`;
 
 export const metadata: Metadata = {
-  title: "Royco Risk",
+  title: "RoycoPharos Risk",
   description: "Risk-first Royco Dawn tranche scoring powered by Pharos safety data.",
   icons: {
     icon: "/favicon.svg",
@@ -38,9 +38,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {themeScript}
         </Script>
         <header className="site-header">
-          <Link className="brand" href="/" aria-label="Royco risk overview">
+          <Link className="brand" href="/" aria-label="RoycoPharos risk overview">
             <span className="brand-mark" aria-hidden="true" />
-            <span>Royco Risk</span>
+            <span>RoycoPharos Risk</span>
           </Link>
           <div className="header-right">
             <nav aria-label="Primary">

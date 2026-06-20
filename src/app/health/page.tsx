@@ -9,8 +9,8 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Data health · Royco Risk",
-  description: "Whether the Royco risk grades you're reading are current and complete right now.",
+  title: "Data health · RoycoPharos Risk",
+  description: "Whether the RoycoPharos grades you're reading are current and complete right now.",
 };
 
 type FreshKey = "royco" | "pharos" | "score";

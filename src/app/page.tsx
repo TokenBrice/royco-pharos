@@ -7,9 +7,9 @@ import { ScorePair } from "@/components/roycopharos/grade";
 import { PegPill } from "@/components/roycopharos/pharos-signals";
 import { formatAge, formatPct, formatRatio, titleCase } from "@/components/roycopharos/format";
 import { exposureFor } from "@/lib/roycopharos/exposure";
-import { getRoycoPharosSnapshotOrNull } from "@/lib/roycopharos/repository";
+import { getHealth, getRoycoPharosSnapshotOrNull } from "@/lib/roycopharos/repository";
 import { buildChangeFeed } from "@/lib/roycopharos/snapshot";
-import { deriveSnapshotHealth } from "@/lib/roycopharos/snapshot-health";
+import type { SnapshotHealthSummary } from "@/lib/roycopharos/snapshot-health";
 import type { RoycoTrancheView, UnderlyingSummary } from "@/lib/roycopharos/types";
 import styles from "./page.module.css";
 
@@ -51,17 +51,53 @@ function topOpportunityGaps(tranches: RoycoTrancheView[], limit = 3) {
     .slice(0, limit);
 }
 
+function shortMethodology(version: string | null | undefined) {
+  return version?.replace(/^royco-opportunity-/, "") ?? "unknown";
+}
+
+function bookStatusTitle(health: SnapshotHealthSummary) {
+  if (!health.ok) return "Coverage incomplete";
+  if (health.lastRun?.status === "degraded" && health.allFresh) return "Fresh inputs, degraded sync";
+  if (!health.allFresh) return "Inputs aging, review health";
+  if (health.flagCount > 0) return "Fresh inputs, confidence warnings";
+  return "Fresh, complete score set";
+}
+
+function bookStatusDetail(health: SnapshotHealthSummary) {
+  if (!health.ok) {
+    return `Only ${health.trancheCount} tranches are present. Treat missing markets as unavailable until the next successful sync.`;
+  }
+  if (health.lastRun?.status === "degraded" && health.allFresh) {
+    return `Fresh means the source ages are current. Degraded means the last sync finished with warnings; all ${health.trancheCount} tranches are still scored.`;
+  }
+  if (!health.allFresh) {
+    return `At least one source feed is aging. Check Health before relying on the ranking.`;
+  }
+  if (health.flagCount > 0) {
+    return `All feeds are current, but ${health.flagCount} row${health.flagCount === 1 ? "" : "s"} carry confidence or mapping flags.`;
+  }
+  return `All ${health.trancheCount} tranches are mapped and scored from current inputs.`;
+}
+
+function sourceLabel(status: string) {
+  if (status === "fresh") return "Fresh";
+  if (status === "degraded") return "Behind";
+  return "Stale";
+}
+
 /** One lead card: a tranche framed by its role (safest seat / largest grade gap). */
 function SignalCard({
   kicker,
   tranche,
   underlying,
   reason,
+  decision,
 }: {
   kicker: string;
   tranche: RoycoTrancheView;
   underlying: UnderlyingSummary | null;
   reason: string;
+  decision: string;
 }) {
   const apy = formatPct(
     tranche.apyCurrentPct != null && tranche.apyCurrentPct > 0 ? tranche.apyCurrentPct : tranche.apy7dPct,
@@ -95,6 +131,7 @@ function SignalCard({
         </span>
       </div>
       <p className={styles.signalReason}>{reason}</p>
+      <p className={styles.signalDecision}>{decision}</p>
       <div className={styles.signalEvidence} aria-label={`${kicker} risk stack evidence`}>
         <span>
           <small>Base asset</small>
@@ -121,8 +158,9 @@ function SignalCard({
 
 export default async function HomePage() {
   const snapshot = await getRoycoPharosSnapshotOrNull();
+  const health = snapshot ? await getHealth() : null;
 
-  if (!snapshot || snapshot.tranches.length === 0) {
+  if (!snapshot || !health || snapshot.tranches.length === 0) {
     return (
       <main className={`page-shell ${styles.homeShell}`}>
         <section className={styles.emptyState}>
@@ -138,7 +176,6 @@ export default async function HomePage() {
 
   const trancheCount = snapshot.tranches.length;
   const marketCount = snapshot.markets.length;
-  const health = deriveSnapshotHealth(snapshot);
   const ratedCount = trancheCount - health.nrCount;
 
   // Two complementary leads, safety-first: the protected seat a cautious depositor should
@@ -163,13 +200,50 @@ export default async function HomePage() {
   const royco = snapshot.meta.royco;
   const pharos = snapshot.meta.pharos;
   const score = snapshot.meta.score;
-  const bothFresh = royco.status === "fresh" && pharos.status === "fresh";
-  const eitherFresh = royco.status === "fresh" || pharos.status === "fresh" || score.status === "fresh";
-  const freshnessWord = bothFresh ? "fresh" : eitherFresh ? "partly aging" : "aging";
+  const methodologyVersion = shortMethodology(snapshot.methodology.version);
 
   return (
     <main className={`page-shell ${styles.homeShell}`}>
       <section className={styles.hero} aria-label="Portfolio overview">
+        <div className={styles.verdictStrip} data-tone={health.tone} aria-label="Book status and trust evidence">
+          <div className={styles.verdictCopy}>
+            <span className={styles.verdictLabel}>Book status</span>
+            <h2>{bookStatusTitle(health)}</h2>
+            <p>{bookStatusDetail(health)}</p>
+          </div>
+
+          <div className={styles.verdictMetrics} aria-label="Coverage and confidence summary">
+            <Link href="/health" className={styles.verdictMetric}>
+              <span>Mapped</span>
+              <strong className="num">
+                {health.mappedTrancheCount}/{health.trancheCount}
+              </strong>
+            </Link>
+            <Link href="/health" className={styles.verdictMetric} data-flag={health.nrCount > 0 ? "bad" : undefined}>
+              <span>Unrated</span>
+              <strong className="num">{health.nrCount}</strong>
+            </Link>
+            <Link
+              href="/health"
+              className={styles.verdictMetric}
+              data-flag={health.lowConfidenceCount > 0 ? "watch" : undefined}
+            >
+              <span>Low confidence</span>
+              <strong className="num">{health.lowConfidenceCount}</strong>
+            </Link>
+            <Link href="/methodology" className={styles.verdictMetric}>
+              <span>Methodology</span>
+              <strong className="num">{methodologyVersion}</strong>
+            </Link>
+          </div>
+
+          <nav className={styles.proofLinks} aria-label="Trust evidence links">
+            <Link href="/health">Health details</Link>
+            <a href="/api/health">Raw health JSON</a>
+            <Link href="/methodology">How grades are built</Link>
+          </nav>
+        </div>
+
         <div className={styles.lead}>
           <div className={styles.thesis}>
             <h1 className={styles.leadHead}>
@@ -181,26 +255,45 @@ export default async function HomePage() {
           {safest ? (
             <div className={styles.signals}>
               <SignalCard
-                kicker="Safest seat"
+                kicker="Start with Safety"
                 tranche={safest}
                 underlying={underlyingFor(safest)}
                 reason="Highest Safety score in the book, the protected seat with the most cushion."
+                decision="Use this as the conservative starting point, then verify the evidence and limits."
               />
               {divergent && showDivergent && divergentReason ? (
                 <SignalCard
-                  kicker="Largest score gap"
+                  kicker="Inspect paid risk"
                   tranche={divergent.tranche}
                   underlying={underlyingFor(divergent.tranche)}
                   reason={divergentReason}
+                  decision="Higher yield is compensation for lower Safety, not a safer seat."
                 />
               ) : null}
             </div>
           ) : null}
 
-          <p className={styles.freshness}>
-            Data {freshnessWord}. Royco <span className="num">{formatAge(royco.ageSeconds)}</span> ago · Pharos{" "}
-            <span className="num">{formatAge(pharos.ageSeconds)}</span> ago.
+          <div className={styles.provenance} aria-label="Data provenance">
+            <span>
+              Royco <strong>{sourceLabel(royco.status)}</strong> <span className="num">{formatAge(royco.ageSeconds)}</span> ago
+            </span>
+            <span>
+              Pharos <strong>{sourceLabel(pharos.status)}</strong> <span className="num">{formatAge(pharos.ageSeconds)}</span> ago
+            </span>
+            <span>
+              Scores <strong>{sourceLabel(score.status)}</strong> <span className="num">{formatAge(score.ageSeconds)}</span> ago
+            </span>
+          </div>
+
+          <p className={styles.nearDisclaimer}>
+            Informational only. A higher score is not a recommendation, insurance, or a guarantee of principal, liquidity, APY, or redemption.
           </p>
+
+          <nav className={styles.mobileShortcuts} aria-label="Overview shortcuts">
+            <a href="#book-title">Ranked book</a>
+            <Link href="/health">Data health</Link>
+            <Link href="/methodology">Methodology</Link>
+          </nav>
         </div>
 
         <div className={`panel ${styles.scatterPanel}`}>

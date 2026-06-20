@@ -33,7 +33,7 @@ export default async function MethodologyPage() {
         <div>
           <h1>Methodology</h1>
           <p>
-            This Royco risk view rates Dawn yield tranches risk-first. It models each tranche in three layers, then
+            RoycoPharos rates Dawn yield tranches risk-first. It models each tranche in three layers, then
             leads with two independent numbers: a Safety score for capital downside and an Opportunity score for
             risk-adjusted yield.
           </p>

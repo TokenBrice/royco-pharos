@@ -252,6 +252,18 @@ function lastTwo(points: HistoryPoint[]): { prev: number; last: number } | null 
   return values.length >= 2 ? { prev: values[values.length - 2], last: values[values.length - 1] } : null;
 }
 
+function formatChangePair(prev: number, last: number, unit: string, initialDigits: number) {
+  let digits = initialDigits;
+  let prevText = prev.toFixed(digits);
+  let lastText = last.toFixed(digits);
+  while (prevText === lastText && digits < 4) {
+    digits += 1;
+    prevText = prev.toFixed(digits);
+    lastText = last.toFixed(digits);
+  }
+  return `${prevText}${unit} -> ${lastText}${unit}`;
+}
+
 /**
  * Real deterioration feed derived from the two most recent observed points per market (requires
  * >= 2 syncs of accumulated history). Unlike the absolute-threshold watchlist, this reports actual
@@ -268,7 +280,7 @@ export function buildChangeFeed(markets: RoycoMarketView[]): ChangeFeedEntry[] {
       entries.push({
         ...base,
         label: "Coverage headroom declining",
-        detail: `${coverage.prev.toFixed(2)}x -> ${coverage.last.toFixed(2)}x`,
+        detail: formatChangePair(coverage.prev, coverage.last, "x", 2),
         severity: coverage.last < market.requiredCoverageRatio! ? "warning" : "watch",
       });
     }
@@ -278,7 +290,7 @@ export function buildChangeFeed(markets: RoycoMarketView[]): ChangeFeedEntry[] {
       entries.push({
         ...base,
         label: "Utilization rising",
-        detail: `${utilization.prev.toFixed(1)}% -> ${utilization.last.toFixed(1)}%`,
+        detail: formatChangePair(utilization.prev, utilization.last, "%", 1),
         severity: utilization.last >= 85 ? "warning" : "watch",
       });
     }

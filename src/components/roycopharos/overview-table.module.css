@@ -420,10 +420,36 @@
 .barLimit { color: var(--muted); font-size: 11px; }
 
 .divCell {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
+}
+
+.scoreFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.scoreFlag > span:last-child:not(.badge) {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.scoreProof {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--brand-ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--brand) 35%, transparent);
+  text-underline-offset: 3px;
 }
 
 /* A genuinely-flagged row gets a gentle warn wash; low liquidity uses an inline
@@ -459,6 +485,24 @@
   background: var(--hairline);
 }
 
+.mobileGroup summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.mobileGroup summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobileGroup summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}
+
+.mobileGroup:not([open]) .mobileMarket {
+  border-bottom: 0;
+}
+
 .mobileMarket,
 .mobileTranche {
   background: var(--surface-1);
@@ -488,6 +532,21 @@
 .mobileChain {
   color: var(--muted);
   font-size: 12px;
+}
+
+.mobileFold {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mobileGroup summary .mobileFold::after {
+  content: " · show";
+}
+
+.mobileGroup[open] summary .mobileFold::after {
+  content: " · hide";
 }
 
 .mobileMarketVitals {
@@ -523,6 +582,10 @@
   gap: 12px;
   padding: 13px;
   border-top: 1px solid var(--hairline);
+}
+
+.mobileTrancheList {
+  display: grid;
 }
 
 .mobileTranche[data-flagged] {
@@ -578,6 +641,12 @@
   gap: 8px;
 }
 
+.mobileReason {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .mobileEvidence {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -606,7 +675,11 @@
 
 @media (max-width: 760px) {
   .controls {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     padding: 12px;
+    box-shadow: var(--shadow-1);
   }
 
   .controlTop {
@@ -663,6 +736,20 @@
 }
 
 @media (max-width: 430px) {
+  .focusFilters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .focusFilters button {
+    flex: 0 0 auto;
+  }
+
+  .resultLine {
+    font-size: 12px;
+  }
+
   .mobileMarketVitals {
     grid-template-columns: 1fr;
   }

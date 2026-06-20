@@ -21,16 +21,14 @@
   --brand-ink: oklch(0.46 0.16 258);
 
   /* grade ramp aligned to Pharos Safety Score letters.
-     Badge text is one dark slate ink on every fill: white text fails WCAG AA on these
-     saturated fills (green 2.5:1, orange 3.0:1, red/blue ~3.6:1); the dark ink clears
-     4.5:1 on all six (worst is blue at 4.86:1). Same ink in both themes — fills are
-     theme-independent — so a badge reads identically light or dark. */
-  --grade-a: #10b981;   --grade-a-on: oklch(0.18 0.02 258);
-  --grade-b: #2f80ed;   --grade-b-on: oklch(0.18 0.02 258);
-  --grade-c: #ff9900;   --grade-c-on: oklch(0.18 0.02 258);
-  --grade-d: #ff6500;   --grade-d-on: oklch(0.18 0.02 258);
-  --grade-e: #ff4a1c;   --grade-e-on: oklch(0.18 0.02 258);
-  --grade-f: #ff3045;   --grade-f-on: oklch(0.18 0.02 258);
+     A→F moves in one perceptual direction from teal/green to red-orange.
+     Brand blue stays reserved for navigation, protected/info states, and focus. */
+  --grade-a: oklch(0.6 0.13 165);   --grade-a-on: oklch(0.16 0.025 258);
+  --grade-b: oklch(0.64 0.14 145);  --grade-b-on: oklch(0.16 0.025 258);
+  --grade-c: oklch(0.8 0.15 110);   --grade-c-on: oklch(0.16 0.025 258);
+  --grade-d: oklch(0.77 0.15 75);   --grade-d-on: oklch(0.16 0.025 258);
+  --grade-e: oklch(0.64 0.18 45);   --grade-e-on: oklch(0.16 0.025 258);
+  --grade-f: oklch(0.56 0.2 25);    --grade-f-on: oklch(0.98 0.004 258);
   --grade-nr: #aeb2b7;  --grade-nr-on: oklch(0.18 0.02 258);
 
   --grade-a-wash: color-mix(in oklch, var(--grade-a) 15%, var(--surface-1));
@@ -101,12 +99,12 @@ html[data-theme="dark"] {
   --brand: oklch(0.72 0.13 258);
   --brand-ink: oklch(0.78 0.12 258);
 
-  --grade-a: #10b981;   --grade-a-on: oklch(0.18 0.02 258);
-  --grade-b: #2f80ed;   --grade-b-on: oklch(0.18 0.02 258);
-  --grade-c: #ff9900;   --grade-c-on: oklch(0.18 0.02 258);
-  --grade-d: #ff6500;   --grade-d-on: oklch(0.18 0.02 258);
-  --grade-e: #ff4a1c;   --grade-e-on: oklch(0.18 0.02 258);
-  --grade-f: #ff3045;   --grade-f-on: oklch(0.18 0.02 258);
+  --grade-a: oklch(0.6 0.13 165);   --grade-a-on: oklch(0.16 0.025 258);
+  --grade-b: oklch(0.64 0.14 145);  --grade-b-on: oklch(0.16 0.025 258);
+  --grade-c: oklch(0.8 0.15 110);   --grade-c-on: oklch(0.16 0.025 258);
+  --grade-d: oklch(0.77 0.15 75);   --grade-d-on: oklch(0.16 0.025 258);
+  --grade-e: oklch(0.64 0.18 45);   --grade-e-on: oklch(0.16 0.025 258);
+  --grade-f: oklch(0.56 0.2 25);    --grade-f-on: oklch(0.98 0.004 258);
   --grade-nr: #8f949b;  --grade-nr-on: oklch(0.18 0.02 258);
 
   --grade-a-wash: color-mix(in oklch, var(--grade-a) 26%, var(--surface-1));
@@ -161,7 +159,7 @@ button, input, select { font: inherit; }
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
 }
 
 .mono { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
@@ -379,9 +377,9 @@ button, input, select { font: inherit; }
   font-size: 15px;
   line-height: 1;
 }
-.grade-badge.sm { width: 23px; height: 23px; font-size: 13px; border-radius: 5px; }
+.grade-badge.sm { width: 23px; height: 23px; font-size: 13px; border-radius: var(--r-sm); }
 .grade-badge.lg { width: 46px; height: 46px; font-size: 25px; border-radius: 10px; }
-.grade-badge.xl { width: 60px; height: 60px; font-size: 32px; border-radius: 12px; }
+.grade-badge.xl { width: 60px; height: 60px; font-size: 32px; border-radius: var(--r-lg); }
 
 .grade-badge[data-grade="A"] { --g: var(--grade-a); --g-on: var(--grade-a-on); }
 .grade-badge[data-grade="B"] { --g: var(--grade-b); --g-on: var(--grade-b-on); }
@@ -426,9 +424,9 @@ button, input, select { font: inherit; }
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.score-badge.sm { min-width: 34px; height: 23px; font-size: 12px; border-radius: 5px; }
+.score-badge.sm { min-width: 34px; height: 23px; font-size: 12px; border-radius: var(--r-sm); }
 .score-badge.lg { min-width: 54px; height: 46px; font-size: 22px; border-radius: 10px; }
-.score-badge.xl { min-width: 68px; height: 60px; font-size: 28px; border-radius: 12px; }
+.score-badge.xl { min-width: 68px; height: 60px; font-size: 28px; border-radius: var(--r-lg); }
 .score-badge[data-grade="A"] { --g: var(--grade-a); --g-on: var(--grade-a-on); }
 .score-badge[data-grade="B"] { --g: var(--grade-b); --g-on: var(--grade-b-on); }
 .score-badge[data-grade="C"] { --g: var(--grade-c); --g-on: var(--grade-c-on); }
@@ -587,7 +585,7 @@ button, input, select { font: inherit; }
   color: var(--muted);
 }
 .dist-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.dist-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.dist-legend i { width: 10px; height: 10px; border-radius: var(--r-sm); }
 
 /* gauge / sparkline shared */
 .sparkline { display: block; width: 100%; height: 112px; color: var(--chart-line); }
@@ -843,7 +841,7 @@ button, input, select { font: inherit; }
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--surface-3);
   color: var(--ink);
   font-family: var(--font-mono), ui-monospace, monospace;
