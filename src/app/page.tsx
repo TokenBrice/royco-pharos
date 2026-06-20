@@ -4,11 +4,13 @@ import { DistributionStrip } from "@/components/roycopharos/distribution-strip";
 import { OpportunityScatter } from "@/components/roycopharos/opportunity-scatter";
 import { AssetLogo } from "@/components/roycopharos/asset-logo";
 import { ScorePair } from "@/components/roycopharos/grade";
-import { formatAge, formatPct, titleCase } from "@/components/roycopharos/format";
+import { DewsPill } from "@/components/roycopharos/pharos-signals";
+import { formatAge, formatPct, formatRatio, titleCase } from "@/components/roycopharos/format";
+import { exposureFor } from "@/lib/roycopharos/exposure";
 import { getRoycoPharosSnapshotOrNull } from "@/lib/roycopharos/repository";
 import { buildChangeFeed } from "@/lib/roycopharos/snapshot";
 import { deriveSnapshotHealth } from "@/lib/roycopharos/snapshot-health";
-import type { RoycoTrancheView } from "@/lib/roycopharos/types";
+import type { RoycoTrancheView, UnderlyingSummary } from "@/lib/roycopharos/types";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,10 +52,22 @@ function topOpportunityGaps(tranches: RoycoTrancheView[], limit = 3) {
 }
 
 /** One lead card: a tranche framed by its role (safest seat / largest grade gap). */
-function SignalCard({ kicker, tranche, reason }: { kicker: string; tranche: RoycoTrancheView; reason: string }) {
+function SignalCard({
+  kicker,
+  tranche,
+  underlying,
+  reason,
+}: {
+  kicker: string;
+  tranche: RoycoTrancheView;
+  underlying: UnderlyingSummary | null;
+  reason: string;
+}) {
   const apy = formatPct(
     tranche.apyCurrentPct != null && tranche.apyCurrentPct > 0 ? tranche.apyCurrentPct : tranche.apy7dPct,
   );
+  const dependency = underlying?.upstreamDependencies[0] ?? null;
+  const exposure = exposureFor(tranche.pharosStablecoinId);
   return (
     <Link className={styles.signalCard} href={`/markets/${encodeURIComponent(tranche.marketKey)}`}>
       <span className={styles.signalKicker}>{kicker}</span>
@@ -81,6 +95,26 @@ function SignalCard({ kicker, tranche, reason }: { kicker: string; tranche: Royc
         </span>
       </div>
       <p className={styles.signalReason}>{reason}</p>
+      <div className={styles.signalEvidence} aria-label={`${kicker} risk stack evidence`}>
+        <span>
+          <small>Base asset</small>
+          <strong>
+            Pharos {underlying?.underlyingSafetyScore ?? tranche.underlyingSafetyScore ?? "NR"}
+            {underlying?.underlyingSafetyGrade ?? tranche.underlyingSafetyGrade ? ` ${underlying?.underlyingSafetyGrade ?? tranche.underlyingSafetyGrade}` : ""}
+          </strong>
+          <DewsPill dews={underlying?.dews} compact />
+        </span>
+        <span>
+          <small>Exposure</small>
+          <strong>{dependency?.symbol ?? dependency?.name ?? exposure?.strategyClass ?? "Dependency not reported"}</strong>
+          <em>{dependency?.weightPct != null ? `${dependency.weightPct.toFixed(0)}% upstream weight` : exposure?.primaryRisk ?? "Pharos dependency detail pending"}</em>
+        </span>
+        <span>
+          <small>Seat structure</small>
+          <strong>{tranche.side === "senior" ? "Junior-buffered" : "First-loss"}</strong>
+          <em>Buffer {formatRatio(tranche.coverageRatio)}</em>
+        </span>
+      </div>
     </Link>
   );
 }
@@ -120,6 +154,9 @@ export default async function HomePage() {
     (id): id is string => Boolean(id),
   );
   const topGaps = topOpportunityGaps(snapshot.tranches);
+  const underlyingById = new Map(snapshot.underlyings.map((underlying) => [underlying.pharosStablecoinId, underlying]));
+  const underlyingFor = (tranche: RoycoTrancheView) =>
+    tranche.pharosStablecoinId ? (underlyingById.get(tranche.pharosStablecoinId) ?? null) : null;
 
   const changes = buildChangeFeed(snapshot.markets);
 
@@ -158,10 +195,16 @@ export default async function HomePage() {
               <SignalCard
                 kicker="Safest seat"
                 tranche={safest}
+                underlying={underlyingFor(safest)}
                 reason="Highest Safety score in the book, the protected seat with the most cushion."
               />
               {divergent && showDivergent && divergentReason ? (
-                <SignalCard kicker="Largest score gap" tranche={divergent.tranche} reason={divergentReason} />
+                <SignalCard
+                  kicker="Largest score gap"
+                  tranche={divergent.tranche}
+                  underlying={underlyingFor(divergent.tranche)}
+                  reason={divergentReason}
+                />
               ) : null}
             </div>
           ) : null}
@@ -198,10 +241,10 @@ export default async function HomePage() {
         <div className="section-heading-row">
           <div>
             <h2 id="book-title" className="section-title">
-              Every tranche, ranked
+              Royco markets, ranked
             </h2>
             <p className="subtle">
-              Ordered risk-first and grouped by market, Senior above Junior. A fixed ranking, not a sortable table.
+              Ordered risk-first and grouped by Royco market, Senior above Junior. Each row keeps Pharos base-asset evidence beside Royco seat mechanics.
             </p>
           </div>
         </div>

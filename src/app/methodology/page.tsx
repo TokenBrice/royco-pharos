@@ -33,8 +33,8 @@ export default async function MethodologyPage() {
         <div>
           <h1>Methodology</h1>
           <p>
-            RoycoPharos rates Royco Dawn yield tranches risk-first. It models each tranche in three layers, then leads
-            with two independent numbers: a Safety score for capital downside and an Opportunity score for
+            This Royco risk view rates Dawn yield tranches risk-first. It models each tranche in three layers, then
+            leads with two independent numbers: a Safety score for capital downside and an Opportunity score for
             risk-adjusted yield.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default async function MethodologyPage() {
       <section className={styles.lede}>
         <div className={styles.ledeProse}>
           <p>
-            Every tranche carries two RoycoPharos numbers. Read them as a pair. The <strong>Safety score</strong>{" "}
+            Every tranche carries two Royco scores. Read them as a pair. The <strong>Safety score</strong>{" "}
             answers how protected the tranche seat is after base-asset, exposure, and tranche-structure risk. The{" "}
             <strong>Opportunity score</strong> answers whether the yield pays fairly for that risk. Pharos&apos; own letter
             grade stays attached to the base asset only.
@@ -73,7 +73,7 @@ export default async function MethodologyPage() {
               <strong>{methodology.safetyScoreName}</strong> measures tranche capital risk. It uses the Pharos base
               Safety Score as Layer 1, subtracts a bounded curated exposure haircut in Layer 2, then applies Layer 3
               tranche mechanics: Senior cushion credit and bounded structure penalties. Pharos rates the base asset;
-              RoycoPharos rates the seat.
+              this Royco view rates the seat.
             </p>
             <div className={styles.formula}>
               <span className={styles.formulaLabel}>Safety formula</span>

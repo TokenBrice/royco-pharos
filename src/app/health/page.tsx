@@ -9,8 +9,8 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Data health · RoycoPharos",
-  description: "Whether the RoycoPharos grades you're reading are current and complete right now.",
+  title: "Data health · Royco Risk",
+  description: "Whether the Royco risk grades you're reading are current and complete right now.",
 };
 
 type FreshKey = "royco" | "pharos" | "score";
@@ -35,7 +35,7 @@ const SOURCES: { key: FreshKey; name: string; origin: string; tag: string; blurb
   {
     key: "score",
     name: "Computed scores",
-    origin: "RoycoPharos",
+    origin: "Royco risk engine",
     tag: "Scores",
     blurb: "Safety and Opportunity grades derived from the two sources above.",
     icon: Gauge,
@@ -150,8 +150,8 @@ export default async function HealthPage() {
       <header className={styles.intro}>
         <h1>Data health</h1>
         <p>
-          Whether the grades you&apos;re reading are current and complete. RoycoPharos pulls tranche data from Royco
-          Dawn and safety data from Pharos, then computes its own scores. This is the state of all three right now.
+          Whether the grades you&apos;re reading are current and complete. This view pulls tranche data from Royco Dawn
+          and safety data from Pharos, then computes Royco seat-level scores. This is the state of all three right now.
         </p>
       </header>
 

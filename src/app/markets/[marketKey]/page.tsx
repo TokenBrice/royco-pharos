@@ -6,6 +6,7 @@ import { PenaltyBar } from "@/components/roycopharos/charts/penalty-bar";
 import { GradeBadge, NumericScoreBadge, ScorePair, gradeColorVar } from "@/components/roycopharos/grade";
 import { MicroBar, StatusDot, headroomLevel, utilizationLevel } from "@/components/roycopharos/indicators";
 import { MiniChart } from "@/components/roycopharos/mini-chart";
+import { DependencyList, DewsNote, DewsPill, PharosProfileLink } from "@/components/roycopharos/pharos-signals";
 import {
   formatAge,
   formatDelta,
@@ -61,7 +62,7 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
   return (
     <main className="page-shell">
       <Link className="text-link" href="/">
-        Back to overview
+        Back to Royco overview
       </Link>
 
       {/* 1. VERDICT MASTHEAD */}
@@ -87,6 +88,14 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
                   ·
                 </span>
                 <span>{titleCase(market.chainSlug)}</span>
+                {baseUnderlying?.dews ? (
+                  <>
+                    <span className={styles.sep} aria-hidden="true">
+                      ·
+                    </span>
+                    <DewsPill dews={baseUnderlying.dews} compact />
+                  </>
+                ) : null}
               </p>
             </div>
           </div>
@@ -153,8 +162,8 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
               How the risk stacks
             </h2>
             <p className={styles.moduleSub}>
-              Pharos rates the base asset; RoycoPharos scores the exposure and the seat structure on top of it. Each
-              layer feeds the next, down to the Safety score for your seat.
+              Pharos rates the base asset; this Royco view scores the exposure and the seat structure on top of it.
+              Each layer feeds the next, down to the Safety score for your seat.
             </p>
             <div className={styles.layerStack}>
               {/* Layer 1 — base asset */}
@@ -178,6 +187,11 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
                             {underlying.underlyingSafetyScore == null ? "No score" : underlying.underlyingSafetyScore}
                           </span>
                         </div>
+                        <div className={styles.signalRow}>
+                          <DewsPill dews={underlying.dews} />
+                          <PharosProfileLink href={underlying.pharosUrl} />
+                        </div>
+                        <DewsNote dews={underlying.dews} />
                         <div className={styles.factGrid}>
                           <div className={styles.fact}>
                             <span className={styles.factLabel}>Price</span>
@@ -224,20 +238,26 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
                           <span className={styles.seatTag}>{profile?.strategyClass ?? "Exposure unknown"}</span>
                         </div>
                         {profile ? (
-                          <dl className={`${styles.factGrid} ${styles.stacked}`}>
-                            <div className={styles.fact}>
-                              <span className={styles.factLabel}>Yield source</span>
-                              <span className={styles.factValue}>{profile.yieldSource}</span>
+                          <>
+                            <div className={styles.dependencyBlock}>
+                              <span className={styles.factLabel}>Upstream dependencies</span>
+                              <DependencyList dependencies={underlying.upstreamDependencies} />
                             </div>
-                            <div className={styles.fact}>
-                              <span className={styles.factLabel}>What breaks it</span>
-                              <span className={styles.factValue}>{profile.primaryRisk}</span>
-                            </div>
-                            <div className={styles.fact}>
-                              <span className={styles.factLabel}>Exit mechanics</span>
-                              <span className={styles.factValue}>{profile.liquidityProfile}</span>
-                            </div>
-                          </dl>
+                            <dl className={`${styles.factGrid} ${styles.stacked}`}>
+                              <div className={styles.fact}>
+                                <span className={styles.factLabel}>Yield source</span>
+                                <span className={styles.factValue}>{profile.yieldSource}</span>
+                              </div>
+                              <div className={styles.fact}>
+                                <span className={styles.factLabel}>What breaks it</span>
+                                <span className={styles.factValue}>{profile.primaryRisk}</span>
+                              </div>
+                              <div className={styles.fact}>
+                                <span className={styles.factLabel}>Exit mechanics</span>
+                                <span className={styles.factValue}>{profile.liquidityProfile}</span>
+                              </div>
+                            </dl>
+                          </>
                         ) : (
                           <p className={styles.baseSummary}>No curated exposure classification for this underlying yet.</p>
                         )}
@@ -294,7 +314,7 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
               Loss waterfall
             </h2>
             <p className={styles.moduleSub}>
-              Where your capital sits in the loss order, and how much cushion stands between a loss and the Senior seat.
+              Where this Royco seat sits in the loss order, and how much cushion stands between a loss and the Senior seat.
             </p>
             <LossWaterfall
               coverageRatio={market.coverageRatio}

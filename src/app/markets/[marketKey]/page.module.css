@@ -305,6 +305,14 @@
   color: var(--muted);
 }
 
+.signalRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+}
+
 .factGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -370,6 +378,12 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
+}
+
+.dependencyBlock {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 /* ---------- history small-multiples ---------- */

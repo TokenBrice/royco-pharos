@@ -85,7 +85,7 @@
 
 .signalCard {
   display: grid;
-  grid-template-rows: auto auto auto 1fr;
+  grid-template-rows: auto auto auto auto 1fr;
   gap: 12px;
   padding: 18px;
   border: 1px solid var(--hairline);
@@ -169,6 +169,46 @@
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.45;
+}
+
+.signalEvidence {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--hairline);
+}
+
+.signalEvidence > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  background: var(--surface-2);
+}
+
+.signalEvidence small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.signalEvidence strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.signalEvidence em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 /* freshness caption — telemetry, sized like telemetry */
