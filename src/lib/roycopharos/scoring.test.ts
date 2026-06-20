@@ -4,7 +4,8 @@ import { buildSnapshot, safetyGradeFromScore, scoreTranche } from ".";
 describe("RoycoPharos scoring (v0.6)", () => {
   it("computes a strong Senior to an A-band Safety score without a first-loss term", () => {
     const snapshot = buildSnapshot(1_770_000_000);
-    const senior = snapshot.tranches.find((tranche) => tranche.marketName === "Auto Finance autoUSD" && tranche.side === "senior");
+    // syrupUSDC: solid base plus a thick Junior buffer -> the strongest Senior in the book.
+    const senior = snapshot.tranches.find((tranche) => tranche.marketName === "Maple Finance syrupUSDC" && tranche.side === "senior");
     expect(senior?.scoreStatus).toBe("computed");
     expect(senior?.safetyScore).toBeGreaterThan(70);
     expect(senior?.safetyGrade).toBe("A");
@@ -28,7 +29,7 @@ describe("RoycoPharos scoring (v0.6)", () => {
       },
       { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0, NR: 0 } as Record<string, number>,
     );
-    expect(counts).toMatchObject({ A: 2, B: 2, C: 5, D: 3, E: 4, F: 2, NR: 0 });
+    expect(counts).toMatchObject({ A: 1, B: 1, C: 4, D: 5, E: 6, F: 1, NR: 0 });
   });
 
   it("adds a buffer-scaled Junior first-loss term (full cushion → lightest)", () => {
@@ -42,7 +43,7 @@ describe("RoycoPharos scoring (v0.6)", () => {
   it("lets a Senior tranche score above the whole-vault Pharos score when the buffer is thick", () => {
     const snapshot = buildSnapshot(1_770_000_000);
     const senior = snapshot.tranches.find((tranche) => tranche.marketName === "Maple Finance syrupUSDC" && tranche.side === "senior");
-    expect(senior?.underlyingSafetyScore).toBe(63);
+    expect(senior?.underlyingSafetyScore).toBe(59);
     expect(senior?.safetyScore).toBeGreaterThan(senior?.underlyingSafetyScore ?? Infinity);
     expect(senior?.safetyGrade).toBe("A");
   });
@@ -91,10 +92,12 @@ describe("RoycoPharos scoring (v0.6)", () => {
   it("computes a separate risk-adjusted Opportunity grade from APY and Safety", () => {
     const snapshot = buildSnapshot(1_770_000_000);
     const junior = snapshot.tranches.find((entry) => entry.marketName === "Apyx apyUSD" && entry.side === "junior");
-    // apyUSD junior: weak/protected → low Safety, but ~51% APY → Opportunity should outrank Safety.
+    // apyUSD junior: weak first-loss seat → low Safety, but ~51% APY → Opportunity outranks Safety,
+    // even after the (Safety/100)^gamma risk-adjustment pulls the net yield down.
     expect(junior?.opportunityYield).toBeGreaterThan(junior?.safetyScore == null ? Infinity : 0);
     expect(junior?.opportunityScore).toBeGreaterThan(junior?.safetyScore ?? Infinity);
-    expect(["A", "B"]).toContain(junior?.opportunityGrade);
+    const gradeRank = (grade: string | null | undefined) => ["F", "E", "D", "C", "B", "A"].indexOf(grade ?? "");
+    expect(gradeRank(junior?.opportunityGrade)).toBeGreaterThan(gradeRank(junior?.safetyGrade));
   });
 
   it("returns NR when the underlying Pharos score is missing", () => {

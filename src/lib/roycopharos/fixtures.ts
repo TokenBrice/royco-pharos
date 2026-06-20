@@ -1,5 +1,4 @@
 import type { RoycoMarketFixture, UnderlyingSummary } from "./types";
-import { pharosStablecoinUrl } from "./pharos-report-card";
 
 const ADDRESS_PREFIX = "0x000000000000000000000000000000000000";
 
@@ -17,166 +16,1732 @@ export const PHAROS_ID_BY_SYMBOL: Record<string, string> = {
 
 export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
   {
-    pharosStablecoinId: "savusd-avant",
-    symbol: "savUSD",
-    name: "Avant savUSD",
-    price: 1.1766,
-    supplyUsd: 44_000_000,
-    underlyingSafetyScore: 33,
-    underlyingSafetyGrade: "F",
-    pharosUrl: pharosStablecoinUrl("savusd-avant"),
-    dews: dews("watch", 32, "Fixture DEWS read: share price is stable, but parent and strategy dependencies remain material."),
-    upstreamDependencies: [dep("avusd-avant", "Avant USD", "avUSD", 100, 35, "F", "strategy-vault parent")],
-    summary: "Recorded Pharos fixture: yield-bearing Avant wrapper with concentrated strategy and issuer dependencies.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "autousd-auto-finance",
+    "symbol": "autoUSD",
+    "name": "Auto Finance autoUSD",
+    "price": null,
+    "supplyUsd": 6675184,
+    "underlyingSafetyScore": 39,
+    "underlyingSafetyGrade": "F",
+    "overallBaseScore": 40.6,
+    "pharosUrl": "https://pharos.watch/stablecoin/autousd-auto-finance/",
+    "peg": {
+      "score": 93,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 3,
+      "lastEventAt": 1678683726,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 93,
+        "grade": "A+",
+        "detail": "Peg reference (USDC): 93/100. 3 depeg events. worst deviation: -1211 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (USDC)",
+            "value": "93/100",
+            "detail": "Peg reference (USDC): 93/100"
+          },
+          {
+            "label": "Detail",
+            "value": "3 depeg events",
+            "detail": "3 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-1211 bps",
+            "detail": "worst deviation: -1211 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 3,
+        "grade": "F",
+        "detail": "Effective exit score: 3/100. DEX liquidity unavailable. 0 pools across 0 chains. Redemption backstop 70/100. Stablecoin redeem. immediate capacity 0.2% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "3/100",
+            "detail": "Effective exit score: 3/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity unavailable",
+            "detail": "DEX liquidity unavailable"
+          },
+          {
+            "label": "Detail",
+            "value": "0 pools across 0 chains",
+            "detail": "0 pools across 0 chains"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 70/100",
+            "detail": "Redemption backstop 70/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Stablecoin redeem",
+            "detail": "Stablecoin redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 0.2% of supply",
+            "detail": "immediate capacity 0.2% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 63,
+        "grade": "C+",
+        "detail": "Collateral: High risk (25). Custody: Fully on-chain (100). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Fully on-chain",
+            "detail": "100"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 35,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (35). Wrapped asset: usdc-circle (parent 40 - 5). Bridge route: Single-chain or issuer-native route (100/100) (0)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "35"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "usdc-circle",
+            "detail": "parent 40 - 5"
+          },
+          {
+            "label": "Bridge route",
+            "value": "Single-chain or issuer-native route (100/100)",
+            "detail": "0"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 71,
+        "grade": "B",
+        "detail": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (76)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (76)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (71)",
+            "detail": "Ceiling: wrapper dependency ceiling (71)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "usdc-circle",
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "weightPct": 100,
+        "safetyScore": 76,
+        "safetyGrade": "B+",
+        "pharosUrl": "https://pharos.watch/stablecoin/usdc-circle/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "usdc-circle",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "Single-chain or issuer-native route",
+      "score": 100
+    },
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "apyusd-apyx",
-    symbol: "apyUSD",
-    name: "Apyx apyUSD",
-    price: 1.001,
-    supplyUsd: 82_400_000,
-    underlyingSafetyScore: 49,
-    underlyingSafetyGrade: "D",
-    pharosUrl: pharosStablecoinUrl("apyusd-apyx"),
-    dews: dews("watch", 28, "Fixture DEWS read: mild peg watch from wrapper and issuer dependencies."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "reserve asset")],
-    summary: "Recorded Pharos fixture: ERC-4626 wrapper exposure with issuer and governance watch items.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "savusd-avant",
+    "symbol": "savUSD",
+    "name": "Avant Staked USD",
+    "price": 1.1776842604831583,
+    "supplyUsd": 92409290,
+    "underlyingSafetyScore": 41,
+    "underlyingSafetyGrade": "D",
+    "overallBaseScore": 40.9,
+    "pharosUrl": "https://pharos.watch/stablecoin/savusd-avant/",
+    "peg": {
+      "score": 99,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 5,
+      "lastEventAt": 1771988584,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 99,
+        "grade": "A+",
+        "detail": "Peg reference (avUSD): 99/100. 5 depeg events. worst deviation: -321 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (avUSD)",
+            "value": "99/100",
+            "detail": "Peg reference (avUSD): 99/100"
+          },
+          {
+            "label": "Detail",
+            "value": "5 depeg events",
+            "detail": "5 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-321 bps",
+            "detail": "worst deviation: -321 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 70,
+        "grade": "B",
+        "detail": "Effective exit score: 70/100. DEX liquidity 41/100. 9 pools across 3 chains. Redemption backstop 70/100. Queue redeem. immediate capacity 100.0% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "70/100",
+            "detail": "Effective exit score: 70/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 41/100",
+            "detail": "DEX liquidity 41/100"
+          },
+          {
+            "label": "Detail",
+            "value": "9 pools across 3 chains",
+            "detail": "9 pools across 3 chains"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 70/100",
+            "detail": "Redemption backstop 70/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Queue redeem",
+            "detail": "Queue redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 100.0% of supply",
+            "detail": "immediate capacity 100.0% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 28,
+        "grade": "F",
+        "detail": "Collateral: High risk (25). Custody: Unregulated custodian (30). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Unregulated custodian",
+            "detail": "30"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 15,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (15). Wrapped asset: avusd-avant (parent 20 - 5). Bridge route: External lock/mint bridge (40/100) (0)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "15"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "avusd-avant",
+            "detail": "parent 20 - 5"
+          },
+          {
+            "label": "Bridge route",
+            "value": "External lock/mint bridge (40/100)",
+            "detail": "0"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 32,
+        "grade": "F",
+        "detail": "Upstream: 1 upstream dep (100% weight) (42). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (37)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (42)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (42)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Penalty",
+            "value": "1 weak dep below 75 (-10)",
+            "detail": "Penalty: 1 weak dep below 75 (-10)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (37)",
+            "detail": "Ceiling: wrapper dependency ceiling (37)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "avusd-avant",
+        "name": "Avant USD",
+        "symbol": "avUSD",
+        "weightPct": 100,
+        "safetyScore": 42,
+        "safetyGrade": "D",
+        "pharosUrl": "https://pharos.watch/stablecoin/avusd-avant/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "avusd-avant",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "External lock/mint bridge",
+      "score": 40
+    },
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (42). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (37)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "syrupusdc-maple",
-    symbol: "syrupUSDC",
-    name: "Maple syrupUSDC",
-    price: 1.07,
-    supplyUsd: 432_000_000,
-    underlyingSafetyScore: 63,
-    underlyingSafetyGrade: "C+",
-    pharosUrl: pharosStablecoinUrl("syrupusdc-maple"),
-    dews: dews("normal", 12, "Fixture DEWS read: no acute depeg stress reported."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "deposit asset")],
-    summary: "Recorded Pharos fixture: institutional-credit vault with FIFO withdrawal and borrower concentration risk.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "apyusd-apyx",
+    "symbol": "apyUSD",
+    "name": "apyUSD",
+    "price": 1.23,
+    "supplyUsd": 157721178,
+    "underlyingSafetyScore": 34,
+    "underlyingSafetyGrade": "F",
+    "overallBaseScore": 46.4,
+    "pharosUrl": "https://pharos.watch/stablecoin/apyusd-apyx/",
+    "peg": {
+      "score": 47,
+      "grade": "D",
+      "activeDepeg": true,
+      "activeDepegBps": 1804,
+      "depegEventCount": 2,
+      "lastEventAt": 1780437028,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 47,
+        "grade": "D",
+        "detail": "Peg reference (apxUSD): 47/100. active depeg. 2 depeg events. worst deviation: -1804 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (apxUSD)",
+            "value": "47/100",
+            "detail": "Peg reference (apxUSD): 47/100"
+          },
+          {
+            "label": "Detail",
+            "value": "active depeg",
+            "detail": "active depeg"
+          },
+          {
+            "label": "Detail",
+            "value": "2 depeg events",
+            "detail": "2 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-1804 bps",
+            "detail": "worst deviation: -1804 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 75,
+        "grade": "B+",
+        "detail": "Effective exit score: 75/100. DEX liquidity 75/100. 20 pools across 2 chains. high concentration (HHI: 0.70). Redemption backstop 65/100. Queue redeem. immediate capacity 100.0% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "75/100",
+            "detail": "Effective exit score: 75/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 75/100",
+            "detail": "DEX liquidity 75/100"
+          },
+          {
+            "label": "Detail",
+            "value": "20 pools across 2 chains",
+            "detail": "20 pools across 2 chains"
+          },
+          {
+            "label": "high concentration (HHI",
+            "value": "0.70)",
+            "detail": "high concentration (HHI: 0.70)"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 65/100",
+            "detail": "Redemption backstop 65/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Queue redeem",
+            "detail": "Queue redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 100.0% of supply",
+            "detail": "immediate capacity 100.0% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 40,
+        "grade": "D",
+        "detail": "Collateral: High risk (25). Custody: Regulated custodian (55). Blacklist: Yes (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Regulated custodian",
+            "detail": "55"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Yes",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 15,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (15). Wrapped asset: apxusd-apyx (parent 20 - 5). Bridge route: Single-chain or issuer-native route (100/100) (0)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "15"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "apxusd-apyx",
+            "detail": "parent 20 - 5"
+          },
+          {
+            "label": "Bridge route",
+            "value": "Single-chain or issuer-native route (100/100)",
+            "detail": "0"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 36,
+        "grade": "F",
+        "detail": "Upstream: 1 upstream dep (100% weight) (46). Declared dependency weight: 100%. Self-backed: Centralized (95). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (41)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (46)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (46)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Centralized (95)",
+            "detail": "Self-backed: Centralized (95)"
+          },
+          {
+            "label": "Penalty",
+            "value": "1 weak dep below 75 (-10)",
+            "detail": "Penalty: 1 weak dep below 75 (-10)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (41)",
+            "detail": "Ceiling: wrapper dependency ceiling (41)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "apxusd-apyx",
+        "name": "apxUSD",
+        "symbol": "apxUSD",
+        "weightPct": 100,
+        "safetyScore": 46,
+        "safetyGrade": "D",
+        "pharosUrl": "https://pharos.watch/stablecoin/apxusd-apyx/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "apxusd-apyx",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "Single-chain or issuer-native route",
+      "score": 100
+    },
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (46). Declared dependency weight: 100%. Self-backed: Centralized (95). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (41)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "aa-falconx-mev-capital",
-    symbol: "AA_FalconXUSDC",
-    name: "Pareto AA FalconXUSDC",
-    price: 1.04,
-    supplyUsd: 27_000_000,
-    underlyingSafetyScore: 52,
-    underlyingSafetyGrade: "C-",
-    pharosUrl: pharosStablecoinUrl("aa-falconx-mev-capital"),
-    dews: dews("watch", 34, "Fixture DEWS read: dependency and exit cadence keep the asset on watch."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "credit-line denomination")],
-    summary: "Recorded Pharos fixture: senior credit-vault share with monthly exit and credit-line dependencies.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "syrupusdc-maple",
+    "symbol": "syrupUSDC",
+    "name": "Maple syrupUSDC",
+    "price": 1.1694589347883357,
+    "supplyUsd": 1298453738,
+    "underlyingSafetyScore": 59,
+    "underlyingSafetyGrade": "C",
+    "overallBaseScore": 61.2,
+    "pharosUrl": "https://pharos.watch/stablecoin/syrupusdc-maple/",
+    "peg": {
+      "score": 93,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 3,
+      "lastEventAt": 1678683726,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 93,
+        "grade": "A+",
+        "detail": "Peg reference (USDC): 93/100. 3 depeg events. worst deviation: -1211 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (USDC)",
+            "value": "93/100",
+            "detail": "Peg reference (USDC): 93/100"
+          },
+          {
+            "label": "Detail",
+            "value": "3 depeg events",
+            "detail": "3 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-1211 bps",
+            "detail": "worst deviation: -1211 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 59,
+        "grade": "C",
+        "detail": "Effective exit score: 59/100. DEX liquidity 59/100. 16 pools across 4 chains. Redemption backstop 62/100. Queue redeem. immediate capacity 1.7% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "59/100",
+            "detail": "Effective exit score: 59/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 59/100",
+            "detail": "DEX liquidity 59/100"
+          },
+          {
+            "label": "Detail",
+            "value": "16 pools across 4 chains",
+            "detail": "16 pools across 4 chains"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 62/100",
+            "detail": "Redemption backstop 62/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Queue redeem",
+            "detail": "Queue redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 1.7% of supply",
+            "detail": "immediate capacity 1.7% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 75,
+        "grade": "B+",
+        "detail": "Collateral: Medium risk (50). Custody: Fully on-chain (100). Blacklist: Yes (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "Medium risk",
+            "detail": "50"
+          },
+          {
+            "label": "Custody",
+            "value": "Fully on-chain",
+            "detail": "100"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Yes",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 31,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (35). Wrapped asset: usdc-circle (parent 40 - 5). Bridge route: Opaque or unknown bridge route (20/100) (-3). Mint authority: 29/100 (Exposed) (-1)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "35"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "usdc-circle",
+            "detail": "parent 40 - 5"
+          },
+          {
+            "label": "Bridge route",
+            "value": "Opaque or unknown bridge route (20/100)",
+            "detail": "-3"
+          },
+          {
+            "label": "Mint authority",
+            "value": "29/100 (Exposed)",
+            "detail": "-1"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 71,
+        "grade": "B",
+        "detail": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (76)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (76)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (71)",
+            "detail": "Ceiling: wrapper dependency ceiling (71)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "usdc-circle",
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "weightPct": 100,
+        "safetyScore": 76,
+        "safetyGrade": "B+",
+        "pharosUrl": "https://pharos.watch/stablecoin/usdc-circle/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "usdc-circle",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "Opaque or unknown bridge route",
+      "score": 20
+    },
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "nusd-neutrl",
-    symbol: "sNUSD",
-    name: "Neutrl sNUSD",
-    price: 0.999,
-    supplyUsd: 44_100_000,
-    underlyingSafetyScore: 64,
-    underlyingSafetyGrade: "C+",
-    pharosUrl: pharosStablecoinUrl("nusd-neutrl"),
-    dews: dews("normal", 18, "Fixture DEWS read: no acute depeg stress reported."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "settlement asset")],
-    summary: "Recorded Pharos fixture: moderate dependency and redemption watch items.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "aa-falconx-mev-capital",
+    "symbol": "AA_FalconXUSDC",
+    "name": "Pareto FalconX Credit Vault",
+    "price": 1.087882638415284,
+    "supplyUsd": 131173843,
+    "underlyingSafetyScore": 52,
+    "underlyingSafetyGrade": "C-",
+    "overallBaseScore": 59.3,
+    "pharosUrl": "https://pharos.watch/stablecoin/aa-falconx-mev-capital/",
+    "peg": {
+      "score": 93,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 3,
+      "lastEventAt": 1678683726,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 93,
+        "grade": "A+",
+        "detail": "Peg reference (USDC): 93/100. 3 depeg events. worst deviation: -1211 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (USDC)",
+            "value": "93/100",
+            "detail": "Peg reference (USDC): 93/100"
+          },
+          {
+            "label": "Detail",
+            "value": "3 depeg events",
+            "detail": "3 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-1211 bps",
+            "detail": "worst deviation: -1211 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": null,
+        "grade": "NR",
+        "detail": "DEX liquidity unavailable. Redemption route is configured but not used for Safety Score liquidity (eventual-only route)",
+        "items": [
+          {
+            "label": "Liquidity",
+            "value": "DEX liquidity unavailable. Redemption route is configured but not used for Safety Score liquidity (eventual-only route)",
+            "detail": null
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 63,
+        "grade": "C+",
+        "detail": "Collateral: High risk (25). Custody: Fully on-chain (100). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Fully on-chain",
+            "detail": "100"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 35,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (35). Wrapped asset: usdc-circle (parent 40 - 5)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "35"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "usdc-circle",
+            "detail": "parent 40 - 5"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 71,
+        "grade": "B",
+        "detail": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (76)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (76)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (71)",
+            "detail": "Ceiling: wrapper dependency ceiling (71)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "usdc-circle",
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "weightPct": 100,
+        "safetyScore": 76,
+        "safetyGrade": "B+",
+        "pharosUrl": "https://pharos.watch/stablecoin/usdc-circle/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "usdc-circle",
+    "navToken": true,
+    "bridgeRoute": null,
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "stcusd-cap",
-    symbol: "stcUSD",
-    name: "Cap stcUSD",
-    price: 1,
-    supplyUsd: 39_000_000,
-    underlyingSafetyScore: 28,
-    underlyingSafetyGrade: "F",
-    pharosUrl: pharosStablecoinUrl("stcusd-cap"),
-    dews: dews("warning", 58, "Fixture DEWS read: elevated stress from basket and liquidity dependencies."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "basket constituent")],
-    summary: "Recorded Pharos fixture: staked Cap wrapper with proportional-basket and liquidity caveats.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "nusd-neutrl",
+    "symbol": "NUSD",
+    "name": "Neutrl USD",
+    "price": 0.9992551289963697,
+    "supplyUsd": 92403480,
+    "underlyingSafetyScore": 64,
+    "underlyingSafetyGrade": "C+",
+    "overallBaseScore": 64.5,
+    "pharosUrl": "https://pharos.watch/stablecoin/nusd-neutrl/",
+    "peg": {
+      "score": 99,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 5,
+      "lastEventAt": 1781517830,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 99,
+        "grade": "A+",
+        "detail": "Peg score: 99/100. 5 depeg events. worst deviation: -197 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg score",
+            "value": "99/100",
+            "detail": "Peg score: 99/100"
+          },
+          {
+            "label": "Detail",
+            "value": "5 depeg events",
+            "detail": "5 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-197 bps",
+            "detail": "worst deviation: -197 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 67,
+        "grade": "B-",
+        "detail": "Effective exit score: 67/100. DEX liquidity 67/100. 1 pool across 1 chain. high concentration (HHI: 1.00). Redemption backstop 70/100. Queue redeem. not used for Safety Score uplift (eventual-only route). eventual redeemability modeled; immediate buffer not separately quantified",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "67/100",
+            "detail": "Effective exit score: 67/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 67/100",
+            "detail": "DEX liquidity 67/100"
+          },
+          {
+            "label": "Detail",
+            "value": "1 pool across 1 chain",
+            "detail": "1 pool across 1 chain"
+          },
+          {
+            "label": "high concentration (HHI",
+            "value": "1.00)",
+            "detail": "high concentration (HHI: 1.00)"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 70/100",
+            "detail": "Redemption backstop 70/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Queue redeem",
+            "detail": "Queue redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "not used for Safety Score uplift (eventual-only route)",
+            "detail": "not used for Safety Score uplift (eventual-only route)"
+          },
+          {
+            "label": "Detail",
+            "value": "eventual redeemability modeled; immediate buffer not separately quantified",
+            "detail": "eventual redeemability modeled; immediate buffer not separately quantified"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 60,
+        "grade": "C+",
+        "detail": "Collateral: Low risk (65). Custody: Regulated custodian (55). Blacklist: Yes (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "Low risk",
+            "detail": "65"
+          },
+          {
+            "label": "Custody",
+            "value": "Regulated custodian",
+            "detail": "55"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Yes",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 48,
+        "grade": "D",
+        "detail": "Governance: Multisig governance (55). Mint authority: 35/100 (Concentrated) (-7)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Multisig governance",
+            "detail": "55"
+          },
+          {
+            "label": "Mint authority",
+            "value": "35/100 (Concentrated)",
+            "detail": "-7"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 75,
+        "grade": "B+",
+        "detail": "Self-backed: Partially centralized (75)",
+        "items": [
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized",
+            "detail": "75"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [],
+    "variantKind": null,
+    "variantParentId": null,
+    "navToken": false,
+    "bridgeRoute": null,
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Self-backed: Partially centralized (75)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "eearn-ember",
-    symbol: "eEARN",
-    name: "Ember eEARN",
-    price: 1.002,
-    supplyUsd: 17_200_000,
-    underlyingSafetyScore: 74,
-    underlyingSafetyGrade: "C",
-    pharosUrl: pharosStablecoinUrl("eearn-ember"),
-    dews: dews("normal", 20, "Fixture DEWS read: no acute depeg stress reported."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "strategy denomination")],
-    summary: "Pharos fixture: higher dependency risk than stronger tracked underlyings.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "stcusd-cap",
+    "symbol": "stcUSD",
+    "name": "Staked Cap USD",
+    "price": 1.066196353920862,
+    "supplyUsd": 70899778,
+    "underlyingSafetyScore": 52,
+    "underlyingSafetyGrade": "C-",
+    "overallBaseScore": 51.7,
+    "pharosUrl": "https://pharos.watch/stablecoin/stcusd-cap/",
+    "peg": {
+      "score": 100,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 0,
+      "lastEventAt": null,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 100,
+        "grade": "A+",
+        "detail": "Peg reference (CUSD): 100/100. No depeg events recorded (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (CUSD)",
+            "value": "100/100",
+            "detail": "Peg reference (CUSD): 100/100"
+          },
+          {
+            "label": "Detail",
+            "value": "No depeg events recorded",
+            "detail": "No depeg events recorded"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 65,
+        "grade": "B-",
+        "detail": "Effective exit score: 65/100. DEX liquidity 15/100. 4 pools across 1 chain. Redemption backstop 86/100. Stablecoin redeem. immediate capacity 100.0% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "65/100",
+            "detail": "Effective exit score: 65/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 15/100",
+            "detail": "DEX liquidity 15/100"
+          },
+          {
+            "label": "Detail",
+            "value": "4 pools across 1 chain",
+            "detail": "4 pools across 1 chain"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 86/100",
+            "detail": "Redemption backstop 86/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Stablecoin redeem",
+            "detail": "Stablecoin redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 100.0% of supply",
+            "detail": "immediate capacity 100.0% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 40,
+        "grade": "D",
+        "detail": "Collateral: High risk (25). Custody: Regulated custodian (55). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Regulated custodian",
+            "detail": "55"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 40,
+        "grade": "D",
+        "detail": "Governance: Wrapper (inherits upstream) (40). Wrapped asset: cusd-cap (parent 45 - 5)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "40"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "cusd-cap",
+            "detail": "parent 45 - 5"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 52,
+        "grade": "C-",
+        "detail": "Upstream: 1 upstream dep (100% weight) (62). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (57)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (62)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (62)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Penalty",
+            "value": "1 weak dep below 75 (-10)",
+            "detail": "Penalty: 1 weak dep below 75 (-10)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (57)",
+            "detail": "Ceiling: wrapper dependency ceiling (57)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "cusd-cap",
+        "name": "Cap cUSD",
+        "symbol": "CUSD",
+        "weightPct": 100,
+        "safetyScore": 62,
+        "safetyGrade": "C+",
+        "pharosUrl": "https://pharos.watch/stablecoin/cusd-cap/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "cusd-cap",
+    "navToken": true,
+    "bridgeRoute": null,
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (62). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (57)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "susdai-usd-ai",
-    symbol: "sUSDai",
-    name: "USD.AI sUSDai",
-    price: 1.01,
-    supplyUsd: 76_000_000,
-    underlyingSafetyScore: 60,
-    underlyingSafetyGrade: "C+",
-    pharosUrl: pharosStablecoinUrl("susdai-usd-ai"),
-    dews: dews("watch", 36, "Fixture DEWS read: queued exits and private-credit exposure keep the wrapper on watch."),
-    upstreamDependencies: [dep("usdai-usd-ai", "USD.AI", "USDai", 100, 61, "C+", "wrapper parent")],
-    summary: "Recorded Pharos fixture: staked USDai wrapper with GPU-loan exposure and queued exits.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
+    "pharosStablecoinId": "eearn-ember",
+    "symbol": "eEARN",
+    "name": "Ember Earn",
+    "price": 1.020946813726626,
+    "supplyUsd": 4818864,
+    "underlyingSafetyScore": 53,
+    "underlyingSafetyGrade": "C-",
+    "overallBaseScore": 54.6,
+    "pharosUrl": "https://pharos.watch/stablecoin/eearn-ember/",
+    "peg": {
+      "score": 93,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 3,
+      "lastEventAt": 1678683726,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 93,
+        "grade": "A+",
+        "detail": "Peg reference (USDC): 93/100. 3 depeg events. worst deviation: -1211 bps (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (USDC)",
+            "value": "93/100",
+            "detail": "Peg reference (USDC): 93/100"
+          },
+          {
+            "label": "Detail",
+            "value": "3 depeg events",
+            "detail": "3 depeg events"
+          },
+          {
+            "label": "worst deviation",
+            "value": "-1211 bps",
+            "detail": "worst deviation: -1211 bps"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 45,
+        "grade": "D",
+        "detail": "Effective exit score: 45/100. DEX liquidity 45/100. 1 pool across 1 chain. high concentration (HHI: 1.00). Redemption backstop 69/100. Stablecoin redeem. immediate capacity 0.0% of supply",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "45/100",
+            "detail": "Effective exit score: 45/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 45/100",
+            "detail": "DEX liquidity 45/100"
+          },
+          {
+            "label": "Detail",
+            "value": "1 pool across 1 chain",
+            "detail": "1 pool across 1 chain"
+          },
+          {
+            "label": "high concentration (HHI",
+            "value": "1.00)",
+            "detail": "high concentration (HHI: 1.00)"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 69/100",
+            "detail": "Redemption backstop 69/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Stablecoin redeem",
+            "detail": "Stablecoin redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "immediate capacity 0.0% of supply",
+            "detail": "immediate capacity 0.0% of supply"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 63,
+        "grade": "C+",
+        "detail": "Collateral: High risk (25). Custody: Fully on-chain (100). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "High risk",
+            "detail": "25"
+          },
+          {
+            "label": "Custody",
+            "value": "Fully on-chain",
+            "detail": "100"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 35,
+        "grade": "F",
+        "detail": "Governance: Wrapper (inherits upstream) (35). Wrapped asset: usdc-circle (parent 40 - 5). Bridge route: Single-chain or issuer-native route (100/100) (0)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Wrapper (inherits upstream)",
+            "detail": "35"
+          },
+          {
+            "label": "Wrapped asset",
+            "value": "usdc-circle",
+            "detail": "parent 40 - 5"
+          },
+          {
+            "label": "Bridge route",
+            "value": "Single-chain or issuer-native route (100/100)",
+            "detail": "0"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 71,
+        "grade": "B",
+        "detail": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "1 upstream dep (100% weight) (76)",
+            "detail": "Upstream: 1 upstream dep (100% weight) (76)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (71)",
+            "detail": "Ceiling: wrapper dependency ceiling (71)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "usdc-circle",
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "weightPct": 100,
+        "safetyScore": 76,
+        "safetyGrade": "B+",
+        "pharosUrl": "https://pharos.watch/stablecoin/usdc-circle/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "usdc-circle",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "Single-chain or issuer-native route",
+      "score": 100
+    },
+    "freshness": {
+      "fallback": false,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 1 upstream dep (100% weight) (76). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Ceiling: wrapper dependency ceiling (71)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
   },
   {
-    pharosStablecoinId: "autousd-auto-finance",
-    symbol: "autoUSD",
-    name: "Auto Finance autoUSD",
-    price: 1,
-    supplyUsd: 28_700_000,
-    underlyingSafetyScore: 78,
-    underlyingSafetyGrade: "C",
-    pharosUrl: pharosStablecoinUrl("autousd-auto-finance"),
-    dews: dews("normal", 15, "Fixture DEWS read: no acute depeg stress reported."),
-    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "reserve asset")],
-    summary: "Pharos fixture: Auto Finance vault share with venue and liquidity caveats.",
-    sourceUpdatedAt: null,
-    fetchedAt: null,
-  },
+    "pharosStablecoinId": "susdai-usd-ai",
+    "symbol": "sUSDai",
+    "name": "Staked USDai",
+    "price": 1.0910493232280571,
+    "supplyUsd": 292924724,
+    "underlyingSafetyScore": 58,
+    "underlyingSafetyGrade": "C",
+    "overallBaseScore": 57.9,
+    "pharosUrl": "https://pharos.watch/stablecoin/susdai-usd-ai/",
+    "peg": {
+      "score": 100,
+      "grade": "A+",
+      "activeDepeg": false,
+      "activeDepegBps": null,
+      "depegEventCount": 0,
+      "lastEventAt": null,
+      "yieldBearing": true
+    },
+    "dimensions": [
+      {
+        "key": "pegStability",
+        "label": "Peg Stability",
+        "score": 100,
+        "grade": "A+",
+        "detail": "Peg reference (USDai): 100/100. No depeg events recorded (yield-bearing — expected price appreciation excluded)",
+        "items": [
+          {
+            "label": "Peg reference (USDai)",
+            "value": "100/100",
+            "detail": "Peg reference (USDai): 100/100"
+          },
+          {
+            "label": "Detail",
+            "value": "No depeg events recorded",
+            "detail": "No depeg events recorded"
+          },
+          {
+            "label": "Adjustment",
+            "value": "Yield-bearing",
+            "detail": "yield-bearing — expected price appreciation excluded"
+          }
+        ]
+      },
+      {
+        "key": "liquidity",
+        "label": "Liquidity",
+        "score": 74,
+        "grade": "B",
+        "detail": "Effective exit score: 74/100. DEX liquidity 74/100. 11 pools across 3 chains. Redemption backstop 70/100. Queue redeem. not used for Safety Score uplift (eventual-only route). eventual redeemability modeled; immediate buffer not separately quantified",
+        "items": [
+          {
+            "label": "Effective exit score",
+            "value": "74/100",
+            "detail": "Effective exit score: 74/100"
+          },
+          {
+            "label": "Detail",
+            "value": "DEX liquidity 74/100",
+            "detail": "DEX liquidity 74/100"
+          },
+          {
+            "label": "Detail",
+            "value": "11 pools across 3 chains",
+            "detail": "11 pools across 3 chains"
+          },
+          {
+            "label": "Detail",
+            "value": "Redemption backstop 70/100",
+            "detail": "Redemption backstop 70/100"
+          },
+          {
+            "label": "Detail",
+            "value": "Queue redeem",
+            "detail": "Queue redeem"
+          },
+          {
+            "label": "Detail",
+            "value": "not used for Safety Score uplift (eventual-only route)",
+            "detail": "not used for Safety Score uplift (eventual-only route)"
+          },
+          {
+            "label": "Detail",
+            "value": "eventual redeemability modeled; immediate buffer not separately quantified",
+            "detail": "eventual redeemability modeled; immediate buffer not separately quantified"
+          }
+        ]
+      },
+      {
+        "key": "resilience",
+        "label": "Resilience",
+        "score": 48,
+        "grade": "D",
+        "detail": "Collateral: Low risk (66). Custody: Unregulated custodian (30). Blacklist: Upstream (descriptive only)",
+        "items": [
+          {
+            "label": "Collateral",
+            "value": "Low risk",
+            "detail": "66"
+          },
+          {
+            "label": "Custody",
+            "value": "Unregulated custodian",
+            "detail": "30"
+          },
+          {
+            "label": "Blacklist",
+            "value": "Upstream",
+            "detail": "descriptive only"
+          }
+        ]
+      },
+      {
+        "key": "decentralization",
+        "label": "Decentralization",
+        "score": 44,
+        "grade": "D",
+        "detail": "Governance: Multisig governance (55). Chain: Ethereum mainnet (third-party bridge) (-10). Bridge route: External lock/mint bridge (40/100) (-1)",
+        "items": [
+          {
+            "label": "Governance",
+            "value": "Multisig governance",
+            "detail": "55"
+          },
+          {
+            "label": "Chain",
+            "value": "Ethereum mainnet (third-party bridge)",
+            "detail": "-10"
+          },
+          {
+            "label": "Bridge route",
+            "value": "External lock/mint bridge (40/100)",
+            "detail": "-1"
+          }
+        ]
+      },
+      {
+        "key": "dependencyRisk",
+        "label": "Dependency Risk",
+        "score": 55,
+        "grade": "C",
+        "detail": "Upstream: 2 upstream deps (100% weight) (69). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (55)",
+        "items": [
+          {
+            "label": "Upstream",
+            "value": "2 upstream deps (100% weight) (69)",
+            "detail": "Upstream: 2 upstream deps (100% weight) (69)"
+          },
+          {
+            "label": "Declared dependency weight",
+            "value": "100%",
+            "detail": "Declared dependency weight: 100%"
+          },
+          {
+            "label": "Self-backed",
+            "value": "Partially centralized (75)",
+            "detail": "Self-backed: Partially centralized (75)"
+          },
+          {
+            "label": "Penalty",
+            "value": "1 weak dep below 75 (-10)",
+            "detail": "Penalty: 1 weak dep below 75 (-10)"
+          },
+          {
+            "label": "Ceiling",
+            "value": "wrapper dependency ceiling (55)",
+            "detail": "Ceiling: wrapper dependency ceiling (55)"
+          }
+        ]
+      }
+    ],
+    "upstreamDependencies": [
+      {
+        "id": "pyusd-paypal",
+        "name": "PayPal USD",
+        "symbol": "PYUSD",
+        "weightPct": 82.3,
+        "safetyScore": 79,
+        "safetyGrade": "B+",
+        "pharosUrl": "https://pharos.watch/stablecoin/pyusd-paypal/",
+        "relationship": "collateral"
+      },
+      {
+        "id": "usdai-usd-ai",
+        "name": "USD.AI",
+        "symbol": "USDai",
+        "weightPct": 100,
+        "safetyScore": 60,
+        "safetyGrade": "C+",
+        "pharosUrl": "https://pharos.watch/stablecoin/usdai-usd-ai/",
+        "relationship": "wrapper"
+      }
+    ],
+    "variantKind": "strategy-vault",
+    "variantParentId": "usdai-usd-ai",
+    "navToken": true,
+    "bridgeRoute": {
+      "label": "External lock/mint bridge",
+      "score": 40
+    },
+    "freshness": {
+      "fallback": true,
+      "collateralDrift": false,
+      "stale": false
+    },
+    "summary": "Upstream: 2 upstream deps (100% weight) (69). Declared dependency weight: 100%. Self-backed: Partially centralized (75). Penalty: 1 weak dep below 75 (-10). Ceiling: wrapper dependency ceiling (55)",
+    "sourceUpdatedAt": null,
+    "fetchedAt": null
+  }
 ];
-
-function dews(status: string, stressScore: number, summary: string): UnderlyingSummary["dews"] {
-  return { status, stressScore, summary, observedAt: null, updatedAt: null };
-}
-
-function dep(
-  id: string,
-  name: string,
-  symbol: string,
-  weightPct: number,
-  safetyScore: number,
-  safetyGrade: string,
-  relationship: string,
-): UnderlyingSummary["upstreamDependencies"][number] {
-  return {
-    id,
-    name,
-    symbol,
-    weightPct,
-    safetyScore,
-    safetyGrade,
-    pharosUrl: pharosStablecoinUrl(id),
-    relationship,
-  };
-}
 
 export const ROYCO_MARKET_FIXTURES: RoycoMarketFixture[] = [
   market("43114", "avalanche", "0x7240ff91b471217ff93349184abe9f102ca1955c", "Staked Avant USD", "normal", 5_659_540, 0.20849, 0.2, 0.95927, 0.9, 0, 0, "medium", [
