@@ -3,10 +3,17 @@ import { notFound } from "next/navigation";
 import { AssetLogo } from "@/components/roycopharos/asset-logo";
 import { LossWaterfall } from "@/components/roycopharos/charts/loss-waterfall";
 import { PenaltyBar } from "@/components/roycopharos/charts/penalty-bar";
-import { GradeBadge, NumericScoreBadge, ScorePair, gradeColorVar } from "@/components/roycopharos/grade";
+import { NumericScoreBadge, ScorePair, gradeColorVar } from "@/components/roycopharos/grade";
 import { MicroBar, StatusDot, headroomLevel, utilizationLevel } from "@/components/roycopharos/indicators";
 import { MiniChart } from "@/components/roycopharos/mini-chart";
-import { DependencyList, DewsNote, DewsPill, PharosProfileLink } from "@/components/roycopharos/pharos-signals";
+import {
+  DependencyList,
+  DimensionBars,
+  PegPill,
+  PegStabilityReadout,
+  PharosProfileLink,
+  PharosSourceBadge,
+} from "@/components/roycopharos/pharos-signals";
 import {
   formatAge,
   formatDelta,
@@ -18,7 +25,7 @@ import {
   formatUsd,
   titleCase,
 } from "@/components/roycopharos/format";
-import { exposureFor, pegReading } from "@/lib/roycopharos/exposure";
+import { exposureFor } from "@/lib/roycopharos/exposure";
 import { getMarketByKey } from "@/lib/roycopharos/repository";
 import type { RoycoTrancheView } from "@/lib/roycopharos/types";
 import styles from "./page.module.css";
@@ -47,6 +54,13 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
   const junior = market.tranches.find((tranche) => tranche.side === "junior");
   const baseUnderlying = market.underlyings[0];
   const baseProfile = baseUnderlying ? exposureFor(baseUnderlying.pharosStablecoinId) : null;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
+  // Risk-stack spine: the running number that flows Pharos base -> after exposure -> each seat.
+  const spineBase = baseUnderlying?.underlyingSafetyScore ?? null;
+  const spineExposureHaircut = senior?.exposureHaircut ?? junior?.exposureHaircut ?? null;
+  const spineAfterExposure =
+    spineBase != null && spineExposureHaircut != null ? Math.round(spineBase - spineExposureHaircut) : null;
 
   const utilLevel = utilizationLevel(market.utilizationRatio, market.utilizationLimitRatio);
   // Buffer bar is scaled against the Senior exposure unit (1.0x), so a thin
@@ -56,7 +70,7 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
   // Data freshness for the masthead: when the underlying numbers were last
   // observed upstream, surfaced so a reader can tell live data from a stale snapshot.
   const asOfTs = market.sourceObservedAt ?? market.publishedAt ?? market.collectedAt ?? null;
-  const dataAgeSeconds = asOfTs != null ? Math.max(0, Math.floor(Date.now() / 1000) - asOfTs) : null;
+  const dataAgeSeconds = asOfTs != null ? Math.max(0, nowSeconds - asOfTs) : null;
   const isStaleSnapshot = market.tranches.some((tranche) => tranche.scoreStatus === "stale");
 
   return (
@@ -88,12 +102,12 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
                   ·
                 </span>
                 <span>{titleCase(market.chainSlug)}</span>
-                {baseUnderlying?.dews ? (
+                {baseUnderlying?.peg ? (
                   <>
                     <span className={styles.sep} aria-hidden="true">
                       ·
                     </span>
-                    <DewsPill dews={baseUnderlying.dews} compact />
+                    <PegPill peg={baseUnderlying.peg} compact />
                   </>
                 ) : null}
               </p>
@@ -165,99 +179,154 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
               Pharos rates the base asset; this Royco view scores the exposure and the seat structure on top of it.
               Each layer feeds the next, down to the Safety score for your seat.
             </p>
+            <div className={styles.spine} aria-label="How the seat Safety is derived">
+              <span className={styles.spineStep}>
+                <span className={styles.spineLabel}>Pharos base</span>
+                <strong>{spineBase ?? "NR"}</strong>
+              </span>
+              <span className={styles.spineArrow} aria-hidden="true">
+                exposure{spineExposureHaircut != null ? ` −${spineExposureHaircut.toFixed(1)}` : ""}
+              </span>
+              <span className={styles.spineStep}>
+                <span className={styles.spineLabel}>after exposure</span>
+                <strong>{spineAfterExposure ?? "NR"}</strong>
+              </span>
+              <span className={styles.spineArrow} aria-hidden="true">seat</span>
+              <span className={styles.spineStep}>
+                {senior ? (
+                  <span className={styles.spineSeat}>
+                    Senior <strong>{senior.safetyScore ?? "NR"}</strong>
+                  </span>
+                ) : null}
+                {junior ? (
+                  <span className={styles.spineSeat}>
+                    Junior <strong>{junior.safetyScore ?? "NR"}</strong>
+                  </span>
+                ) : null}
+              </span>
+            </div>
             <div className={styles.layerStack}>
-              {/* Layer 1 — base asset */}
+              {/* Layer 1 — base asset (Pharos dossier, shown verbatim) */}
               <div className={styles.layer}>
                 <div className={styles.layerHead}>
                   <span className={styles.layerTag}>Layer 1</span>
                   <h3>Base asset</h3>
+                  <span className={styles.layerSource}>Pharos, shown verbatim</span>
                 </div>
                 <div className={styles.baseRow}>
                   {market.underlyings.map((underlying) => {
-                    const profile = exposureFor(underlying.pharosStablecoinId);
-                    const peg = pegReading(underlying.price, profile);
-                    const driftWatch = peg.deviationPct != null && peg.behavior === "stable" && Math.abs(peg.deviationPct) > 2;
+                    const pharosAge =
+                      underlying.sourceUpdatedAt != null ? Math.max(0, nowSeconds - underlying.sourceUpdatedAt) : null;
+                    const context = [
+                      underlying.variantKind ? titleCase(underlying.variantKind) : null,
+                      underlying.navToken ? "NAV token" : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ");
                     return (
                       <article className={styles.baseCard} key={`base-${underlying.pharosStablecoinId ?? underlying.symbol}`}>
-                        <div className={styles.baseCardHead}>
-                          <GradeBadge grade={underlying.underlyingSafetyGrade} />
-                          <AssetLogo symbol={underlying.symbol} size={22} />
-                          <span className={styles.baseSymbol}>{underlying.symbol}</span>
-                          <span className={styles.baseScore}>
-                            {underlying.underlyingSafetyScore == null ? "No score" : underlying.underlyingSafetyScore}
-                          </span>
-                        </div>
-                        <div className={styles.signalRow}>
-                          <DewsPill dews={underlying.dews} />
-                          <PharosProfileLink href={underlying.pharosUrl} />
-                        </div>
-                        <DewsNote dews={underlying.dews} />
-                        <div className={styles.factGrid}>
-                          <div className={styles.fact}>
-                            <span className={styles.factLabel}>Price</span>
-                            <span className={styles.factValue}>
-                              <span className="mono">{peg.price == null ? "NR" : `$${peg.price.toFixed(4)}`}</span>
-                              {peg.deviationPct != null ? (
-                                <span className={styles.deviation} data-flag={driftWatch ? "watch" : undefined}>
-                                  {peg.deviationPct >= 0 ? "+" : ""}
-                                  {peg.deviationPct}% vs $1
-                                </span>
-                              ) : null}
-                            </span>
+                        <div className={styles.baseDossierHead}>
+                          <div className={styles.baseIdent}>
+                            <AssetLogo symbol={underlying.symbol} size={26} />
+                            <div className={styles.baseIdentText}>
+                              <span className={styles.baseSymbol}>{underlying.symbol}</span>
+                              <span className={styles.baseName}>{underlying.name}</span>
+                            </div>
                           </div>
-                          <div className={styles.fact}>
-                            <span className={styles.factLabel}>Supply</span>
-                            <span className={styles.factValue}>
+                          <PharosSourceBadge ageSeconds={pharosAge} freshness={underlying.freshness} />
+                        </div>
+
+                        <div className={styles.basePanels}>
+                          <div className={styles.pharosSafety}>
+                            <span className={styles.factLabel}>Pharos Safety</span>
+                            <div className={styles.pharosSafetyScore}>
+                              <NumericScoreBadge
+                                score={underlying.underlyingSafetyScore}
+                                grade={underlying.underlyingSafetyGrade}
+                                size="lg"
+                                label="Pharos Safety score"
+                              />
+                              {underlying.overallBaseScore != null ? (
+                                <span className={styles.baseSub}>base {Math.round(underlying.overallBaseScore)}</span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className={styles.pegPanel}>
+                            <PegStabilityReadout peg={underlying.peg} />
+                          </div>
+                        </div>
+
+                        <div className={styles.dossierBlock}>
+                          <span className={styles.factLabel}>Pharos dimensions</span>
+                          <DimensionBars dimensions={underlying.dimensions} />
+                        </div>
+
+                        <div className={styles.dossierBlock}>
+                          <span className={styles.factLabel}>Backed by</span>
+                          <DependencyList
+                            dependencies={underlying.upstreamDependencies}
+                            empty="Pharos reports no upstream dependencies for this asset."
+                          />
+                        </div>
+
+                        <div className={styles.baseFooter}>
+                          <span className={styles.baseFooterFacts}>
+                            <span>
+                              <span className={styles.factLabel}>Supply</span>{" "}
                               <span className="mono">{formatUsd(underlying.supplyUsd)}</span>
                             </span>
-                          </div>
+                            {underlying.bridgeRoute?.label ? (
+                              <span>
+                                <span className={styles.factLabel}>Bridge route</span> {underlying.bridgeRoute.label}
+                                {underlying.bridgeRoute.score != null ? ` (${underlying.bridgeRoute.score})` : ""}
+                              </span>
+                            ) : null}
+                            {context ? <span className={styles.baseVariant}>{context}</span> : null}
+                          </span>
+                          <PharosProfileLink href={underlying.pharosUrl} />
                         </div>
-                        <p className={styles.pegNote}>{peg.note}</p>
-                        <p className={styles.baseSummary}>{underlying.summary}</p>
                       </article>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Layer 2 — exposure */}
+              {/* Layer 2 — exposure (Royco wrapper) */}
               <div className={styles.layer}>
                 <div className={styles.layerHead}>
                   <span className={styles.layerTag}>Layer 2</span>
                   <h3>Exposure</h3>
+                  <span className={styles.layerSource}>curated reference data</span>
                 </div>
                 <div className={styles.baseRow}>
                   {market.underlyings.map((underlying) => {
                     const profile = exposureFor(underlying.pharosStablecoinId);
                     const tranche = market.tranches.find((entry) => entry.pharosStablecoinId === underlying.pharosStablecoinId);
+                    const haircut = tranche?.exposureHaircut ?? null;
                     return (
                       <article className={styles.baseCard} key={`exp-${underlying.pharosStablecoinId ?? underlying.symbol}`}>
-                        <div className={styles.baseCardHead}>
-                          <NumericScoreBadge score={tranche?.exposureScore ?? null} size="sm" label="Exposure score" />
-                          <span className={styles.baseSymbol}>{underlying.symbol}</span>
-                          <span className={styles.seatTag}>{profile?.strategyClass ?? "Exposure unknown"}</span>
+                        <div className={styles.exposureHead}>
+                          <span className={styles.exposureClass}>{profile?.strategyClass ?? "Exposure unknown"}</span>
+                          <span className={styles.exposureTransition}>
+                            exposure score {tranche?.exposureScore ?? "NR"}
+                            {haircut != null ? <span className={styles.exposureHaircut}> → base −{haircut.toFixed(1)} pts</span> : null}
+                          </span>
                         </div>
                         {profile ? (
-                          <>
-                            <div className={styles.dependencyBlock}>
-                              <span className={styles.factLabel}>Upstream dependencies</span>
-                              <DependencyList dependencies={underlying.upstreamDependencies} />
+                          <dl className={`${styles.factGrid} ${styles.stacked}`}>
+                            <div className={styles.fact}>
+                              <span className={styles.factLabel}>Yield source</span>
+                              <span className={styles.factValue}>{profile.yieldSource}</span>
                             </div>
-                            <dl className={`${styles.factGrid} ${styles.stacked}`}>
-                              <div className={styles.fact}>
-                                <span className={styles.factLabel}>Yield source</span>
-                                <span className={styles.factValue}>{profile.yieldSource}</span>
-                              </div>
-                              <div className={styles.fact}>
-                                <span className={styles.factLabel}>What breaks it</span>
-                                <span className={styles.factValue}>{profile.primaryRisk}</span>
-                              </div>
-                              <div className={styles.fact}>
-                                <span className={styles.factLabel}>Exit mechanics</span>
-                                <span className={styles.factValue}>{profile.liquidityProfile}</span>
-                              </div>
-                            </dl>
-                          </>
+                            <div className={styles.fact}>
+                              <span className={styles.factLabel}>What breaks it</span>
+                              <span className={styles.factValue}>{profile.primaryRisk}</span>
+                            </div>
+                            <div className={styles.fact}>
+                              <span className={styles.factLabel}>Exit mechanics</span>
+                              <span className={styles.factValue}>{profile.liquidityProfile}</span>
+                            </div>
+                          </dl>
                         ) : (
                           <p className={styles.baseSummary}>No curated exposure classification for this underlying yet.</p>
                         )}
@@ -453,14 +522,6 @@ export default async function MarketPage({ params }: { params: Promise<{ marketK
                   </span>
                   <span className="metric-label">Extra haircut</span>
                   <span className={styles.spreadNote}>Junior&apos;s added first-loss structural cost.</span>
-                </div>
-                <div className={styles.spread}>
-                  <span className={styles.spreadValue}>
-                    {senior.safetyScore ?? "NR"}/{senior.opportunityScore ?? "NR"} → {junior.safetyScore ?? "NR"}/
-                    {junior.opportunityScore ?? "NR"}
-                  </span>
-                  <span className="metric-label">Safety to Opportunity</span>
-                  <span className={styles.spreadNote}>Senior versus Junior score pair.</span>
                 </div>
               </div>
             </section>

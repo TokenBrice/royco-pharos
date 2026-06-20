@@ -4,7 +4,7 @@ import { DistributionStrip } from "@/components/roycopharos/distribution-strip";
 import { OpportunityScatter } from "@/components/roycopharos/opportunity-scatter";
 import { AssetLogo } from "@/components/roycopharos/asset-logo";
 import { ScorePair } from "@/components/roycopharos/grade";
-import { DewsPill } from "@/components/roycopharos/pharos-signals";
+import { PegPill } from "@/components/roycopharos/pharos-signals";
 import { formatAge, formatPct, formatRatio, titleCase } from "@/components/roycopharos/format";
 import { exposureFor } from "@/lib/roycopharos/exposure";
 import { getRoycoPharosSnapshotOrNull } from "@/lib/roycopharos/repository";
@@ -102,7 +102,7 @@ function SignalCard({
             Pharos {underlying?.underlyingSafetyScore ?? tranche.underlyingSafetyScore ?? "NR"}
             {underlying?.underlyingSafetyGrade ?? tranche.underlyingSafetyGrade ? ` ${underlying?.underlyingSafetyGrade ?? tranche.underlyingSafetyGrade}` : ""}
           </strong>
-          <DewsPill dews={underlying?.dews} compact />
+          <PegPill peg={underlying?.peg} compact />
         </span>
         <span>
           <small>Exposure</small>

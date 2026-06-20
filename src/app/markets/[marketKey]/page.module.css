@@ -286,31 +286,9 @@
   min-width: 0;
 }
 
-.baseCardHead {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
 .baseSymbol {
   font-size: 17px;
   font-weight: 600;
-}
-
-.baseScore {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.signalRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin: 0 0 10px;
 }
 
 .factGrid {
@@ -349,24 +327,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.pegNote {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.deviation {
-  display: inline-block;
-  margin-left: 8px;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 600;
-}
-.deviation[data-flag="watch"] {
-  color: var(--warn-ink);
-}
-
 .baseSummary {
   margin: 0;
   color: var(--ink-soft);
@@ -374,16 +334,191 @@
   line-height: 1.5;
 }
 
-.seatTag {
+/* ---------- risk-stack spine ---------- */
+.spine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.spineStep {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.spineStep strong {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+
+.spineLabel {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.spineArrow {
+  color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+}
+
+.spineSeat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-right: 12px;
+  font-weight: 600;
+}
+
+/* ---------- layer source tag ---------- */
+.layerSource {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ---------- Layer 1 — Pharos base-asset dossier ---------- */
+.baseDossierHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.baseIdent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.baseIdentText {
+  display: grid;
+  min-width: 0;
+}
+
+.baseName {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.basePanels {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.pharosSafety {
+  display: grid;
+  gap: 6px;
+}
+
+.pharosSafetyScore {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.baseSub {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pegPanel {
+  min-width: 0;
+  padding-left: 18px;
+  border-left: 1px solid var(--hairline);
+}
+
+.dossierBlock {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.baseFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.baseFooterFacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.baseVariant {
   color: var(--muted);
 }
 
-.dependencyBlock {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 14px;
+/* ---------- Layer 2 — exposure head ---------- */
+.exposureHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.exposureClass {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.exposureTransition {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.exposureHaircut {
+  color: var(--bad-ink);
+}
+
+@media (max-width: 620px) {
+  .basePanels {
+    grid-template-columns: 1fr;
+  }
+
+  .pegPanel {
+    padding-left: 0;
+    padding-top: 14px;
+    border-left: 0;
+    border-top: 1px solid var(--hairline);
+  }
 }
 
 /* ---------- history small-multiples ---------- */
