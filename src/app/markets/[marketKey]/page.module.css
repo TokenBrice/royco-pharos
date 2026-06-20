@@ -1,0 +1,550 @@
+/* ============================================================
+   Vault dossier — modular research grid.
+   Replaces full-width prose panels with a responsive module grid:
+   two columns where modules pair on desktop, single column on mobile.
+   ============================================================ */
+
+/* ---------- verdict masthead ---------- */
+.masthead {
+  display: grid;
+  gap: 22px;
+  padding: clamp(20px, 3vw, 30px);
+  margin-bottom: 24px;
+}
+
+.mastheadTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px 28px;
+}
+
+.mastheadId {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(30px, 4.4vw, 46px);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.subline {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.subline .sep {
+  color: var(--hairline-strong);
+}
+
+.mastheadStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.stat {
+  display: grid;
+  gap: 4px;
+}
+
+.statValue {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* data freshness: dot + relative age, warns when the snapshot is stale */
+.freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.freshDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+}
+
+.freshness[data-stale] {
+  color: var(--warn-ink);
+}
+
+.freshness[data-stale] .freshDot {
+  background: var(--warn);
+}
+
+/* verdict cards: one divergence pair + sentence per tranche */
+.verdicts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.verdict {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.verdictBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.verdictSeat {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.verdictLine {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* ---------- key metrics strip ---------- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+
+.metric {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 16px 18px;
+  background: var(--surface-1);
+}
+
+.metricValue {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricBarRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metricNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.module {
+  padding: clamp(18px, 2.4vw, 24px);
+  min-width: 0;
+}
+
+.moduleWide {
+  grid-column: 1 / -1;
+}
+
+.moduleSub {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* penalty: one block per tranche inside the module */
+.penaltyStack {
+  display: grid;
+  gap: 24px;
+}
+
+.penaltyBlock {
+  display: grid;
+  gap: 12px;
+}
+
+.penaltyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.penaltyHead h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.penaltySeat {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- three-layer stack ---------- */
+.layerStack {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.layer {
+  padding: 18px 20px;
+  background: var(--surface-1);
+  border-top: 1px solid var(--hairline);
+}
+
+.layer:first-child {
+  border-top: 0;
+}
+
+.layerHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.layerTag {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-ink);
+  letter-spacing: 0.04em;
+}
+
+.layerHead h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.layerLede {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.layerNote {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.baseRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.baseCard {
+  min-width: 0;
+}
+
+.baseCardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.baseSymbol {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.baseScore {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.factGrid.stacked {
+  grid-template-columns: 1fr;
+}
+
+.fact {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.factLabel {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.factValue {
+  font-weight: 600;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.factValue .mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.pegNote {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.deviation {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+.deviation[data-flag="watch"] {
+  color: var(--warn-ink);
+}
+
+.baseSummary {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.seatTag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- history small-multiples ---------- */
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.historyCard {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  min-width: 0;
+}
+
+.historyHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.historyTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.historyCurrent {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- comparison + why junior pays ---------- */
+.compareGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.compareCard {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  min-width: 0;
+}
+
+.compareCard h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.compareFacts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.compareFacts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.compareFacts dt {
+  color: var(--muted);
+}
+
+.compareFacts dd {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.spreadRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--hairline);
+  margin-top: 16px;
+}
+
+.spread {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface-1);
+}
+
+.spreadValue {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-ink);
+}
+
+.spreadNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* ---------- layout: single dossier column ---------- */
+.mainColumn {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* in-page jump nav */
+.sectionNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: -6px 0 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.sectionNav a {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sectionNav a:hover,
+.sectionNav a:focus-visible {
+  color: var(--brand-ink);
+  text-decoration: underline;
+}
+
+/* touch devices: the jump-nav links are the only path to lower sections, so give them a 44px target */
+@media (pointer: coarse) {
+  .sectionNav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+/* anchored sections clear the sticky header */
+.module :global(.section-title) {
+  scroll-margin-top: 84px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .moduleGrid,
+  .verdicts,
+  .compareGrid {
+    grid-template-columns: 1fr;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-14T00:00:00Z",
+  "title": "Design System: RoycoPharos",
+  "extensions": {
+    "colorMeta": {
+      "brand": { "role": "primary", "displayName": "Lighthouse Slate-Blue", "canonical": "oklch(0.52 0.15 258)", "tonalRamp": ["oklch(0.18 0.05 258)", "oklch(0.28 0.09 258)", "oklch(0.38 0.13 258)", "oklch(0.46 0.16 258)", "oklch(0.52 0.15 258)", "oklch(0.64 0.13 258)", "oklch(0.78 0.10 258)", "oklch(0.92 0.04 258)"] },
+      "grade-a": { "role": "secondary", "displayName": "Grade A Deep Teal-Green", "canonical": "oklch(0.6 0.13 165)", "tonalRamp": ["oklch(0.20 0.05 165)", "oklch(0.30 0.07 165)", "oklch(0.42 0.10 165)", "oklch(0.52 0.12 165)", "oklch(0.60 0.13 165)", "oklch(0.72 0.12 165)", "oklch(0.83 0.09 165)", "oklch(0.94 0.04 165)"] },
+      "grade-b": { "role": "secondary", "displayName": "Grade B Green", "canonical": "oklch(0.62 0.14 145)", "tonalRamp": ["oklch(0.20 0.05 145)", "oklch(0.30 0.08 145)", "oklch(0.42 0.11 145)", "oklch(0.52 0.13 145)", "oklch(0.62 0.14 145)", "oklch(0.74 0.13 145)", "oklch(0.85 0.09 145)", "oklch(0.95 0.04 145)"] },
+      "grade-c": { "role": "secondary", "displayName": "Grade C Chartreuse", "canonical": "oklch(0.8 0.15 110)", "tonalRamp": ["oklch(0.24 0.06 110)", "oklch(0.36 0.09 110)", "oklch(0.48 0.12 110)", "oklch(0.62 0.14 110)", "oklch(0.80 0.15 110)", "oklch(0.87 0.13 110)", "oklch(0.92 0.09 110)", "oklch(0.96 0.04 110)"] },
+      "grade-d": { "role": "secondary", "displayName": "Grade D Amber", "canonical": "oklch(0.77 0.15 75)", "tonalRamp": ["oklch(0.24 0.06 75)", "oklch(0.36 0.09 75)", "oklch(0.48 0.12 75)", "oklch(0.62 0.14 75)", "oklch(0.77 0.15 75)", "oklch(0.85 0.13 75)", "oklch(0.91 0.09 75)", "oklch(0.96 0.04 75)"] },
+      "grade-e": { "role": "secondary", "displayName": "Grade E Orange", "canonical": "oklch(0.64 0.18 45)", "tonalRamp": ["oklch(0.22 0.07 45)", "oklch(0.32 0.11 45)", "oklch(0.44 0.15 45)", "oklch(0.54 0.17 45)", "oklch(0.64 0.18 45)", "oklch(0.74 0.16 45)", "oklch(0.85 0.10 45)", "oklch(0.94 0.04 45)"] },
+      "grade-f": { "role": "secondary", "displayName": "Grade F Red-Orange", "canonical": "oklch(0.56 0.2 25)", "tonalRamp": ["oklch(0.20 0.08 25)", "oklch(0.30 0.12 25)", "oklch(0.42 0.16 25)", "oklch(0.50 0.19 25)", "oklch(0.56 0.20 25)", "oklch(0.67 0.19 25)", "oklch(0.80 0.13 25)", "oklch(0.93 0.05 25)"] },
+      "grade-nr": { "role": "secondary", "displayName": "Grade NR Quiet Neutral", "canonical": "oklch(0.72 0.012 255)", "tonalRamp": ["oklch(0.20 0.012 255)", "oklch(0.32 0.012 255)", "oklch(0.45 0.012 255)", "oklch(0.58 0.012 255)", "oklch(0.72 0.012 255)", "oklch(0.83 0.010 255)", "oklch(0.92 0.008 255)", "oklch(0.98 0.004 255)"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "oklch(0.24 0.02 258)", "tonalRamp": ["oklch(0.17 0.012 255)", "oklch(0.24 0.02 258)", "oklch(0.34 0.02 258)", "oklch(0.475 0.02 258)", "oklch(0.70 0.012 255)", "oklch(0.83 0.012 255)", "oklch(0.93 0.009 255)", "oklch(0.99 0.002 255)"] },
+      "bg": { "role": "neutral", "displayName": "Cool Canvas", "canonical": "oklch(0.975 0.005 255)", "tonalRamp": ["oklch(0.17 0.012 258)", "oklch(0.205 0.014 258)", "oklch(0.29 0.016 258)", "oklch(0.475 0.02 258)", "oklch(0.72 0.012 255)", "oklch(0.93 0.009 255)", "oklch(0.975 0.005 255)", "oklch(0.995 0.0015 255)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display Serif", "purpose": "Hero lead sentence and page headings only. The thesis, stated once." },
+      "headline": { "displayName": "Headline Serif", "purpose": "Major prose section titles in methodology and the vault dossier." },
+      "title": { "displayName": "Panel Title", "purpose": "Section and panel titles inside the app shell." },
+      "body": { "displayName": "Body Sans", "purpose": "All prose and table text. Measure capped at 68ch." },
+      "label": { "displayName": "Uppercase Label", "purpose": "Metric labels and small captions; <=4 words, never sentences." },
+      "mono": { "displayName": "Mono Numerics", "purpose": "Every figure, grade letter, APY, score, and chart axis. Always tabular-nums." }
+    },
+    "shadows": [
+      { "name": "resting-lift", "value": "0 1px 2px oklch(0.24 0.02 258 / 7%), 0 10px 28px oklch(0.24 0.02 258 / 6%)", "purpose": "Light-theme default panels, signal callouts, the data-table wrap." },
+      { "name": "raised-module", "value": "0 2px 6px oklch(0.24 0.02 258 / 9%), 0 24px 56px oklch(0.24 0.02 258 / 9%)", "purpose": "Light-theme hero/feature modules and floating overlays." },
+      { "name": "dark-inset", "value": "0 1px 0 oklch(1 0 0 / 4%) inset, 0 24px 56px oklch(0 0 0 / 35%)", "purpose": "Dark-theme overlays only; resting surfaces use the tonal ladder instead." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default easing for all state transitions; exponential ease-out, no bounce." },
+      { "name": "dur-fast", "value": "150ms", "purpose": "Chip/row hover, focus rings, control toggles." },
+      { "name": "dur", "value": "220ms", "purpose": "Theme crossfade, micro-bar fills, disclosure." }
+    ],
+    "breakpoints": [
+      { "name": "lg-stack", "value": "980px", "purpose": "Two-column grids collapse to single column." },
+      { "name": "sm-header", "value": "680px", "purpose": "Sticky header goes static and nav wraps full-width." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Grade Chip",
+      "kind": "chip",
+      "refersTo": "grade-badge",
+      "description": "The product's core atom: a color-coded grade square plus its numeric score. Color, letter, and position are redundant channels.",
+      "html": "<span class=\"ds-grade-chip\"><span class=\"ds-grade-badge\" data-grade=\"E\">E</span><span class=\"ds-grade-score\">31</span></span>",
+      "css": ".ds-grade-chip{display:inline-flex;align-items:center;gap:7px;} .ds-grade-badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;background:var(--grade-e,oklch(0.64 0.18 45));color:#fff;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:15px;line-height:1;} .ds-grade-score{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--ink,oklch(0.24 0.02 258));}"
+    },
+    {
+      "name": "Grade Badge (Not Rated)",
+      "kind": "chip",
+      "refersTo": "grade-badge",
+      "description": "The NR state: a dashed, italic, fill-less square. Absence of a Pharos score is never painted as a grade.",
+      "html": "<span class=\"ds-grade-nr\" aria-label=\"Grade NR\">NR</span>",
+      "css": ".ds-grade-nr{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;background:transparent;color:var(--muted,oklch(0.475 0.02 258));border:1px dashed var(--hairline-strong,oklch(0.83 0.012 255));font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-style:italic;}"
+    },
+    {
+      "name": "Divergence Pair",
+      "kind": "custom",
+      "refersTo": "grade-badge",
+      "description": "The signature object. Safety and Opportunity grades joined by a connector whose slope encodes the gap; rising right (Opportunity outranks Safety) turns brand-blue and adds a delta when the gap is >=2.",
+      "html": "<span class=\"ds-divergence ds-paid\"><span class=\"ds-col\"><span class=\"ds-label\">Safety</span><span class=\"ds-dbadge\" data-g=\"E\">E</span></span><span class=\"ds-link\"><svg width=\"30\" height=\"42\" viewBox=\"0 0 30 42\" aria-hidden=\"true\"><line x1=\"2\" y1=\"29.4\" x2=\"28\" y2=\"7\" stroke=\"var(--brand,oklch(0.52 0.15 258))\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"2\" cy=\"29.4\" r=\"2.6\" fill=\"var(--muted,oklch(0.475 0.02 258))\"/><circle cx=\"28\" cy=\"7\" r=\"2.8\" fill=\"var(--brand,oklch(0.52 0.15 258))\"/></svg></span><span class=\"ds-col\"><span class=\"ds-label\">Opp</span><span class=\"ds-dbadge\" data-g=\"A\">A</span></span><span class=\"ds-delta\">▲4</span></span>",
+      "css": ".ds-divergence{display:inline-flex;align-items:center;gap:0;} .ds-divergence.ds-paid{padding:4px 6px;border-radius:6px;background:var(--info-wash,oklch(0.95 0.04 258));} .ds-divergence .ds-col{display:grid;gap:4px;justify-items:center;} .ds-divergence .ds-label{font-family:Inter,system-ui,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted,oklch(0.475 0.02 258));} .ds-divergence .ds-dbadge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:15px;color:#fff;} .ds-divergence .ds-dbadge[data-g=\"A\"]{background:var(--grade-a,oklch(0.6 0.13 165));} .ds-divergence .ds-dbadge[data-g=\"E\"]{background:var(--grade-e,oklch(0.64 0.18 45));} .ds-divergence .ds-link{display:grid;align-content:center;padding:0 2px;} .ds-divergence .ds-delta{margin-left:6px;align-self:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:600;color:var(--brand-ink,oklch(0.46 0.16 258));}"
+    },
+    {
+      "name": "Distribution Strip",
+      "kind": "custom",
+      "refersTo": "grade-badge",
+      "description": "The whole book's risk shape in one bar: A-F segments sized by tranche count, each in its grade fill with the count in mono.",
+      "html": "<div class=\"ds-dist\" role=\"img\" aria-label=\"Grade distribution across 18 tranches\"><span data-grade=\"A\" style=\"flex-grow:1\">1</span><span data-grade=\"B\" style=\"flex-grow:3\">3</span><span data-grade=\"C\" style=\"flex-grow:4\">4</span><span data-grade=\"D\" style=\"flex-grow:3\">3</span><span data-grade=\"E\" style=\"flex-grow:2\">2</span><span data-grade=\"F\" style=\"flex-grow:5\">5</span></div>",
+      "css": ".ds-dist{display:flex;height:40px;overflow:hidden;border:1px solid var(--hairline,oklch(0.9 0.008 255));border-radius:6px;} .ds-dist span{display:grid;place-items:center;min-width:26px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;font-weight:600;color:#fff;} .ds-dist span[data-grade=\"A\"]{background:var(--grade-a,oklch(0.6 0.13 165));} .ds-dist span[data-grade=\"B\"]{background:var(--grade-b,oklch(0.62 0.14 145));} .ds-dist span[data-grade=\"C\"]{background:var(--grade-c,oklch(0.8 0.15 110));color:var(--ink,oklch(0.24 0.02 258));} .ds-dist span[data-grade=\"D\"]{background:var(--grade-d,oklch(0.77 0.15 75));color:var(--ink,oklch(0.24 0.02 258));} .ds-dist span[data-grade=\"E\"]{background:var(--grade-e,oklch(0.64 0.18 45));} .ds-dist span[data-grade=\"F\"]{background:var(--grade-f,oklch(0.56 0.2 25));}"
+    },
+    {
+      "name": "Status Dot",
+      "kind": "custom",
+      "refersTo": "badge-pill",
+      "description": "A labelled pill dot for normal/protected/unhealthy/critical. The text label always travels with the color.",
+      "html": "<span class=\"ds-status-dot\" data-status=\"protected\">Protected</span>",
+      "css": ".ds-status-dot{display:inline-flex;align-items:center;gap:7px;font-family:Inter,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink,oklch(0.24 0.02 258));} .ds-status-dot::before{content:\"\";width:9px;height:9px;border-radius:50%;background:var(--info,oklch(0.52 0.15 258));} .ds-status-dot[data-status=\"normal\"]::before{background:var(--good,oklch(0.55 0.13 150));} .ds-status-dot[data-status=\"unhealthy\"]::before{background:var(--warn,oklch(0.7 0.15 72));} .ds-status-dot[data-status=\"critical\"]::before{background:var(--bad,oklch(0.55 0.2 25));}"
+    },
+    {
+      "name": "Status Badge Pill",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "A rounded data/status pill. Tinted variants draw from the status family: washed background, same-hue ink, same-hue border.",
+      "html": "<span class=\"ds-badge-pill ds-good\">Coverage healthy</span>",
+      "css": ".ds-badge-pill{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border:1px solid var(--hairline,oklch(0.9 0.008 255));border-radius:999px;background:var(--surface-1,oklch(0.995 0.0015 255));color:var(--muted,oklch(0.475 0.02 258));font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:650;white-space:nowrap;} .ds-badge-pill.ds-good{border-color:var(--good,oklch(0.55 0.13 150));background:var(--good-wash,oklch(0.95 0.04 150));color:var(--good-ink,oklch(0.43 0.12 150));}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "button",
+      "refersTo": "segmented-active",
+      "description": "Senior/Junior and side toggles. Muted inactive segments; the active fills with brand and flips its text to surface-1.",
+      "html": "<div class=\"ds-segmented\"><button type=\"button\">Senior</button><button type=\"button\" aria-pressed=\"true\">Junior</button></div>",
+      "css": ".ds-segmented{display:inline-flex;border:1px solid var(--hairline-strong,oklch(0.83 0.012 255));border-radius:6px;overflow:hidden;} .ds-segmented button{padding:7px 14px;border:0;border-right:1px solid var(--hairline,oklch(0.9 0.008 255));background:var(--surface-1,oklch(0.995 0.0015 255));color:var(--muted,oklch(0.475 0.02 258));font-family:Inter,system-ui,sans-serif;font-weight:600;cursor:pointer;transition:background 150ms cubic-bezier(0.22,1,0.36,1),color 150ms cubic-bezier(0.22,1,0.36,1);} .ds-segmented button:last-child{border-right:0;} .ds-segmented button:hover{color:var(--ink,oklch(0.24 0.02 258));} .ds-segmented button[aria-pressed=\"true\"]{background:var(--brand,oklch(0.52 0.15 258));color:var(--surface-1,oklch(0.995 0.0015 255));}"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "button",
+      "refersTo": "theme-toggle",
+      "description": "36px icon button that flips data-theme on the root. Hover lifts the icon to ink and the border to brand.",
+      "html": "<button type=\"button\" class=\"ds-theme-toggle\" aria-label=\"Switch to dark theme\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\"/></svg></button>",
+      "css": ".ds-theme-toggle{display:inline-grid;place-items:center;width:36px;height:36px;border:1px solid var(--hairline-strong,oklch(0.83 0.012 255));border-radius:6px;background:var(--surface-1,oklch(0.995 0.0015 255));color:var(--muted,oklch(0.475 0.02 258));cursor:pointer;transition:color 150ms cubic-bezier(0.22,1,0.36,1),border-color 150ms cubic-bezier(0.22,1,0.36,1);} .ds-theme-toggle:hover,.ds-theme-toggle:focus-visible{color:var(--ink,oklch(0.24 0.02 258));border-color:var(--brand,oklch(0.52 0.15 258));outline:none;}"
+    },
+    {
+      "name": "Select Input",
+      "kind": "input",
+      "refersTo": "input-select",
+      "description": "Filter and sort control. Hairline-strong stroke, surface-1 fill, 6px radius, brand focus ring.",
+      "html": "<select class=\"ds-select\" aria-label=\"Sort tranches\"><option>Sort: Safety first</option><option>Sort: Opportunity</option><option>Sort: APY</option></select>",
+      "css": ".ds-select{padding:7px 10px;border:1px solid var(--hairline-strong,oklch(0.83 0.012 255));border-radius:6px;background:var(--surface-1,oklch(0.995 0.0015 255));color:var(--ink,oklch(0.24 0.02 258));font-family:Inter,system-ui,sans-serif;font-size:14px;} .ds-select:focus-visible{outline:2px solid var(--brand,oklch(0.52 0.15 258));outline-offset:2px;}"
+    },
+    {
+      "name": "Metric Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The base raised container: hairline border, 10px radius, resting-lift shadow in light, an uppercase label over a mono value.",
+      "html": "<div class=\"ds-panel\"><span class=\"ds-panel-label\">Coverage headroom</span><span class=\"ds-panel-value\">+12.4%</span></div>",
+      "css": ".ds-panel{border:1px solid var(--hairline,oklch(0.9 0.008 255));border-radius:10px;background:var(--surface-1,oklch(0.995 0.0015 255));padding:20px;box-shadow:var(--shadow-1,0 1px 2px oklch(0.24 0.02 258 / 7%),0 10px 28px oklch(0.24 0.02 258 / 6%));} .ds-panel-label{display:block;color:var(--muted,oklch(0.475 0.02 258));font-family:Inter,system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;} .ds-panel-value{display:block;margin-top:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:600;color:var(--ink,oklch(0.24 0.02 258));}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Risk Desk Dossier",
+    "overview": "RoycoPharos reads like an analyst's research desk, not a yield-farming dashboard. The surface is a cool slate-blue canvas (hue 258) that stays deliberately quiet so the only saturated color on screen carries meaning. Serif display type lends the credibility of a printed risk memo; monospaced numerics make every figure feel measured and audited. The system exists to make one idea legible at a glance: the divergence between a tranche's Safety grade (capital downside) and its Opportunity grade (risk-adjusted yield). Color is the messenger, never the decoration.\n\nDensity is earned, not performed. Data rows pack tight with tabular figures and inline microviz; page sections breathe with generous margins between them. Two themes ship from one semantic-token layer: a light editorial default and a dark risk-terminal toggle, authored once and re-skinned by CSS variables. The instruments inside the dossier (grade chips, divergence pairs, the distribution strip, the loss waterfall) are calibrated and precise; the prose around them is sober and direct.\n\nThis system explicitly rejects the 2026 AI-default warm cream background, crypto-hype neon and glow, all-black grade badges where an A and an F look identical, the hero-metric template, identical icon-and-text card grids, per-section uppercase eyebrows, side-stripe accent borders, gradient text, and decorative glassmorphism. Sobriety is how the product earns trust.",
+    "keyCharacteristics": [
+      "Cool slate-blue neutral canvas (hue 255-258), never warm-by-reflex.",
+      "Saturated color rationed to exactly two jobs: grades and status.",
+      "An engineered A->F grade ramp (teal-green to red-orange) as the organizing visual system.",
+      "Three type families on a real contrast axis: serif display, sans UI, mono numerics.",
+      "Dual light/dark theme from one semantic-token layer.",
+      "Color is never the only channel: grade letter + fixed position + uncertainty hatch always travel with it."
+    ],
+    "rules": [
+      { "name": "The One Hue, One Meaning Rule", "body": "A hue is assigned exactly one job. Teal-green is grade A; the brand blue is 'protected'; amber is caution. Never reuse a grade hue for decoration, and never tint the canvas toward a grade color.", "section": "colors" },
+      { "name": "The Cool Canvas Rule", "body": "The background sits at hue 255 chroma 0.005, cool and near-neutral. The warm cream/sand/paper band (hue 40-100) is forbidden; if the cool cast ever reads tinted, fall back to true oklch(0.99 0 0), never toward warmth.", "section": "colors" },
+      { "name": "The Redundant Channel Rule", "body": "Color never carries meaning alone. Every grade ships its letter, its fixed A-F slot, and (when low-confidence or stale) a diagonal hatch. The design must survive grayscale.", "section": "colors" },
+      { "name": "The Tabular Numerics Rule", "body": "Every number renders in IBM Plex Mono with font-variant-numeric: tabular-nums, so columns align to the pixel and chips feel instrument-grade. A proportional figure in a data cell is a defect.", "section": "typography" },
+      { "name": "The Serif-for-Verdict Rule", "body": "Source Serif 4 appears only at display and headline sizes (the thesis, section titles). It never drops into body, labels, or controls; its rarity is what signals 'this is the conclusion.'", "section": "typography" },
+      { "name": "The Theme-Split Depth Rule", "body": "Shadows belong to light only. In dark, raise a surface by stepping it up the surface-1 -> surface-2 -> surface-3 ladder, never by adding a drop shadow. Both themes share the same 1px hairline border.", "section": "elevation" },
+      { "name": "The No-Stripe Rule", "body": "State is shown by a full hairline plus a wash tint plus a glyph, never by a thick colored border-left. Side-stripe accent borders are forbidden everywhere.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the canvas cool and near-neutral (hue 255, chroma <=0.005); fall back to true oklch(0.99 0 0) if it ever reads tinted.",
+      "Do render every number in IBM Plex Mono with tabular-nums.",
+      "Do ship the grade letter, its fixed A-F position, and an uncertainty hatch alongside every grade color, so meaning survives grayscale and colorblindness.",
+      "Do reserve Source Serif 4 for the hero lead and section titles only.",
+      "Do separate and group with 1px hairlines, washes, and seams; raise with soft shadow in light and the surface ladder in dark.",
+      "Do verify body text >=4.5:1 and large/UI text >=3:1 in both themes; keep muted above 4.5:1.",
+      "Do show NR, low-confidence, and stale states plainly; render a single history point as 'collecting history.'"
+    ],
+    "donts": [
+      "Don't use a warm cream / sand / paper background, or token names like --paper / --cream; the 2026 AI-default warm-neutral band (hue 40-100) is forbidden.",
+      "Don't render grades as all-black (or single-color) badges where an A and an F look identical; color must carry the grade.",
+      "Don't build the hero-metric template (big number, small label, supporting stats); freshness and telemetry are sized like telemetry, never promoted to the hero.",
+      "Don't repeat identical icon + heading + text card grids, and never nest a card inside a card.",
+      "Don't add per-section uppercase tracked eyebrows or 01 / 02 / 03 numbered scaffolding.",
+      "Don't use a border-left/border-right colored stripe greater than 1px; show state with full hairline + wash + glyph.",
+      "Don't use gradient text (background-clip: text) or decorative glassmorphism; the one sanctioned blur is the sticky header.",
+      "Don't fabricate trends, launder missing data into a confident number, or paint a healthy book entirely green."
+    ]
+  }
+}

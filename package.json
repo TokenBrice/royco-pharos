@@ -1,0 +1,55 @@
+{
+  "name": "royco-pharos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <27"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sync": "tsx scripts/sync.ts",
+    "sync:royco": "tsx scripts/sync.ts --royco",
+    "sync:pharos": "tsx scripts/sync.ts --pharos",
+    "status": "tsx scripts/status.ts",
+    "calibrate": "tsx scripts/calibrate.ts",
+    "build:worker": "opennextjs-cloudflare build",
+    "preview:worker": "npm run build:worker && wrangler dev",
+    "deploy:worker": "npm run build:worker && wrangler deploy --env=\"\"",
+    "cf:types": "wrangler types --env-interface CloudflareEnv ./src/cloudflare-env.d.ts",
+    "db:migrate:local": "wrangler d1 migrations apply roycopharos --local",
+    "db:migrate:remote": "wrangler d1 migrations apply roycopharos --remote",
+    "deploy:worker:staging": "npm run build:worker && wrangler deploy --env staging",
+    "deploy:sync": "wrangler deploy --config wrangler.sync.jsonc --env=\"\"",
+    "deploy:sync:staging": "wrangler deploy --config wrangler.sync.jsonc --env staging",
+    "db:migrate:staging": "wrangler d1 migrations apply roycopharos-staging --remote --env staging",
+    "db:migrate:production": "wrangler d1 migrations apply roycopharos --remote --env=\"\"",
+    "deploy:production": "npm run db:migrate:production && npm run deploy:worker && npm run deploy:sync",
+    "deploy:staging": "npm run db:migrate:staging && npm run deploy:worker:staging && npm run deploy:sync:staging"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "next": "16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260620.1",
+    "@opennextjs/cloudflare": "^1.19.11",
+    "@types/node": "24.12.2",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19",
+    "tsx": "^4.22.3",
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.7",
+    "wrangler": "^4.103.0"
+  },
+  "overrides": {
+    "postcss": "8.5.15"
+  }
+}

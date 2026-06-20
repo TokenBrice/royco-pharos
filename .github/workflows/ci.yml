@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Build Cloudflare Worker
+        run: npm run build:worker
+
+      - name: Validate Wrangler bundle
+        run: npx wrangler deploy --dry-run --env=""
+
+      - name: Validate sync Worker bundle
+        run: npx wrangler deploy --config wrangler.sync.jsonc --dry-run --env=""

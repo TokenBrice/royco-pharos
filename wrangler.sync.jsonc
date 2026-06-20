@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "roycopharos-sync",
+  "main": "workers/sync.ts",
+  "compatibility_date": "2026-06-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ROYCO_DAWN_LIVE": "1",
+    "PHAROS_API_BASE": "https://api.pharos.watch"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "roycopharos",
+      "database_id": "9284fdc9-9cea-4820-981a-3f513b295a08",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "env": {
+    "staging": {
+      "name": "roycopharos-sync-staging",
+      "triggers": {
+        "crons": ["7 * * * *"]
+      },
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ROYCO_DAWN_LIVE": "1",
+        "PHAROS_API_BASE": "https://api.pharos.watch"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "roycopharos-staging",
+          "database_id": "c6432b61-4c21-42a0-9848-c1813bf4b056",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
+}

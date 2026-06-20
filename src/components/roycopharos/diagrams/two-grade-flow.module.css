@@ -1,0 +1,87 @@
+/* Two-grade flow — input boxes + operator glyphs ending in a grade badge. */
+
+.wrap {
+  display: grid;
+  gap: 18px;
+}
+
+.flow {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.flowLabel {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.track {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.node {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.box {
+  display: grid;
+  place-items: center;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--ink);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.box[data-tone="haircut"] {
+  border-color: color-mix(in oklch, var(--warn) 45%, var(--hairline));
+  background: var(--warn-wash);
+  color: var(--warn-ink);
+}
+
+.box[data-tone="factor"] {
+  border-color: color-mix(in oklch, var(--info) 40%, var(--hairline));
+  background: var(--info-wash);
+  color: var(--info-ink);
+}
+
+.op {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.result {
+  display: grid;
+  place-items: center;
+  padding-left: 4px;
+}
+
+@media (max-width: 520px) {
+  .track {
+    align-items: flex-start;
+  }
+}

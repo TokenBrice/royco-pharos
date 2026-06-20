@@ -1,0 +1,150 @@
+/* Methodology page — numbered sections, white-paper voice, viz per concept.
+   Page-specific layout only; colors/atoms come from globals.css tokens. */
+
+.lede {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  align-items: start;
+  margin-bottom: 36px;
+}
+
+.ledeProse {
+  max-width: 68ch;
+}
+
+.ledeProse p {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.ledeProse p:last-child {
+  margin-bottom: 0;
+}
+
+/* a section is a numbered block: serif header + body */
+.section {
+  margin-top: 48px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 18px;
+}
+
+.sectionNum {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+/* two-up layout: prose on the left, diagram panel on the right where they pair */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+}
+
+.prose {
+  max-width: 68ch;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.prose p {
+  margin: 0 0 14px;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose strong {
+  color: var(--ink);
+}
+
+.prose ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.prose li + li {
+  margin-top: 8px;
+}
+
+/* a framed panel that holds a diagram */
+.diagramPanel {
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.diagramCaption {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* the ruler is the Rosetta stone — give it a prominent full-width panel */
+.rulerPanel {
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+
+.formula {
+  margin: 14px 0 0;
+}
+
+.formulaLabel {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* bands tables: each row leads with a grade badge */
+.bandRow td:first-child {
+  width: 70px;
+}
+
+.bandBadgeCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.factorScroll {
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .lede,
+  .split {
+    grid-template-columns: 1fr;
+  }
+}

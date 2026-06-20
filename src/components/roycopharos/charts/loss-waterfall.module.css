@@ -1,0 +1,114 @@
+/* Loss waterfall — co-located styles. SVG fills/strokes use tokens inline;
+   only the text/legend chrome lives here. */
+
+.wrap {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+
+/* SVG text helpers (font-family/size only; fill is set per element) */
+.threshLabel {
+  fill: var(--ink);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.barLabel {
+  fill: var(--info-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.barLabelStrong {
+  fill: var(--warn-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.barSub {
+  fill: var(--warn-ink);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.floorLabel {
+  fill: var(--muted);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.annotation {
+  margin: 0;
+  max-width: 44ch;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+.nr {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.nrBadge {
+  padding: 4px 12px;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.nr p {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 14px;
+  line-height: 1.45;
+}

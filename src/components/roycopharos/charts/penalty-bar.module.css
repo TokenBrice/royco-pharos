@@ -1,0 +1,173 @@
+/* Penalty breakdown bar — co-located styles. */
+
+.wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.baseline,
+.finalCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.finalCell {
+  justify-content: flex-end;
+}
+
+.baseLabel {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.finalNum {
+  color: var(--brand-ink);
+}
+
+.minus {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* the deduction bar */
+.bar {
+  display: flex;
+  height: 28px;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.kept {
+  height: 100%;
+  background: var(--good);
+}
+
+.seg {
+  position: relative;
+  height: 100%;
+  min-width: 3px;
+  border-left: 1px solid color-mix(in oklch, var(--surface-1) 55%, transparent);
+}
+
+/* grouped factor list */
+.factors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+}
+
+.factorGroup {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.catLabel {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.factorGroup dd {
+  margin: 0;
+}
+
+.factorGroup ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factorGroup li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.sevDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.factorLabel {
+  min-width: 0;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factorVal {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--bad-ink);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.nr {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  color: var(--muted);
+}
+
+.nr p {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 14px;
+  line-height: 1.45;
+}

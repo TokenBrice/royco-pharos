@@ -1,0 +1,293 @@
+/* ============================================================
+   Dual-line vault ledger — local module for overview-table.tsx
+   A CSS-grid ledger (not a <table>) so the summary + two indented
+   tranche sublines and the left grade heat-spine align cleanly.
+   role="table"/row/cell + a header row keep it accessible; the
+   wrapper scrolls horizontally on narrow widths.
+   ============================================================ */
+
+/* The shared column track — header, summary and subline rows all
+   reference it so every cell stays aligned across the spine. Col 1
+   is the Safety heat-spine, col 2 the market/tranche name. */
+.ledger {
+  --cols:
+    minmax(280px, 2fr)  /* asset + seat ring + tranche identity */
+    minmax(120px, 0.9fr) /* APY                     */
+    minmax(110px, 0.8fr) /* coverage headroom       */
+    minmax(110px, 0.8fr) /* utilization             */
+    minmax(140px, 0.9fr) /* divergence              */;
+  min-width: 880px;
+}
+
+.headRow,
+.subRow {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: center;
+  column-gap: 14px;
+}
+
+.headRow {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hairline-strong);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.headRow .num { text-align: left; }
+
+/* ---- vault group ---- */
+.group {
+  border-bottom: 1px solid var(--hairline-strong);
+}
+.group:last-child { border-bottom: 0; }
+
+/* ---- summary (market) row: a research-dossier section header ----
+   The band states the market's premise (what it's built on, how healthy
+   it is); the indented tranche rows below are the per-seat findings, so no
+   figure is repeated across the two. Left = case identity, right = a vitals
+   strip joined by 1px seams, led by the foundational Pharos base-asset read. */
+.summaryRow {
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--hairline);
+}
+.summaryInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  flex-wrap: wrap;
+}
+
+/* identity: case title (serif, the dossier section-title voice), locus, status, on one line */
+.identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.marketName {
+  min-width: 0;
+  text-decoration: none;
+}
+.marketName strong {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.marketName:hover strong,
+.marketName:focus-visible strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.identity :global(.status-dot) { font-size: 12px; }
+.identityMeta {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+
+/* vitals strip: instrument-style metrics on one line, joined by hairline seams */
+.vitals {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.baseAsset,
+.vital {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  border-left: 1px solid var(--hairline);
+  min-width: 0;
+}
+/* the Pharos read sits at the end of the left cluster: seam on the left only */
+.baseAsset {
+  padding-right: 0;
+}
+.vitals > :first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+/* the foundational read: Pharos base-asset grade, emphasized as the source */
+.baseAssetScore {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.baseAssetSym {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cellLabel {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cellNum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+}
+.cellNum.muted { color: var(--muted); font-weight: 500; }
+
+/* ---- tranche subline ---- */
+.subRow {
+  padding: 11px 16px;
+  background: var(--surface-1);
+}
+.subRow + .subRow { border-top: 1px solid var(--hairline); }
+
+/* Consolidated identity cell: tree glyph + asset logo inside a Safety-grade seat ring
+   (same language as the scatter markers) + the base asset, exposure type, and tranche seat. */
+.identityCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.tree {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+  flex: none;
+}
+
+/* The marker: asset logo centered inside the seat ring, like the chart. */
+.marker {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.markerRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.markerLogo {
+  position: relative;
+  line-height: 0;
+}
+
+.identityText {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.assetSymbol {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+}
+.assetClass {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+.trancheLine {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  margin-top: 1px;
+}
+.trancheLine strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.trancheSeat { color: var(--muted); }
+
+.apyCell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.apyValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+}
+.apy7d {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.apySpark { width: 100%; max-width: 96px; }
+
+/* coverage / utilization bar cells */
+.barCell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.barFigure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+.barLimit { color: var(--muted); font-size: 11px; }
+
+.divCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* A genuinely-flagged row gets a gentle warn wash; low liquidity uses an inline
+   tag (below), never a full-row wash, so the table doesn't read as all-amber. */
+.subRow.flagged { background: color-mix(in oklch, var(--warn) 6%, transparent); }
+
+.thin {
+  align-self: center;
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--warn-wash);
+  color: var(--warn-ink);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* hover affordance, matching the table hover language */
+.summaryRow:hover { background: color-mix(in oklch, var(--brand) 7%, var(--surface-2)); }
+.subRow:hover { background: color-mix(in oklch, var(--brand) 6%, var(--surface-1)); }

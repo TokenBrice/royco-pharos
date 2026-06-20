@@ -1,0 +1,86 @@
+/* Loss-waterfall worked example — standalone SVG, tokens only. */
+
+.fig {
+  margin: 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+
+.senior {
+  fill: var(--info-wash);
+  stroke: color-mix(in oklch, var(--info) 45%, var(--hairline));
+  stroke-width: 1;
+}
+
+.junior {
+  fill: var(--warn-wash);
+  stroke: color-mix(in oklch, var(--warn) 50%, var(--hairline));
+  stroke-width: 1;
+}
+
+.draw {
+  fill: color-mix(in oklch, var(--bad) 38%, transparent);
+}
+
+.segLabel {
+  fill: var(--info-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.segLabelDark {
+  fill: var(--warn-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.segSub {
+  fill: var(--warn-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.arrow {
+  stroke: var(--bad);
+  stroke-width: 2;
+}
+
+.arrowHead {
+  fill: var(--bad);
+}
+
+.arrowLabel {
+  fill: var(--bad-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.threshold {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  opacity: 0.5;
+}
+
+.thresholdLabel {
+  fill: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.caption {
+  margin: 12px 0 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}

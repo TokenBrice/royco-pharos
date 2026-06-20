@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RoycoPharos">
+  <rect width="64" height="64" rx="12" fill="#fffefa"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#17211c" stroke-width="5"/>
+  <path d="M32 12v40M12 32h40" fill="none" stroke="#0a6f57" stroke-width="5" stroke-linecap="round"/>
+</svg>

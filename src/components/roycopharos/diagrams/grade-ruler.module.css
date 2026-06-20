@@ -1,0 +1,75 @@
+/* Score -> grade ruler — the calibrated color legend (Rosetta stone). */
+
+.wrap {
+  display: grid;
+  gap: 24px;
+}
+
+.ruler {
+  margin: 0;
+}
+
+.rulerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.rulerTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rulerUnit {
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.strip {
+  display: flex;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+}
+
+.seg {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  background: var(--g, var(--grade-nr));
+}
+
+.seg[data-grade="A"] { --g: var(--grade-a); }
+.seg[data-grade="B"] { --g: var(--grade-b); }
+.seg[data-grade="C"] { --g: var(--grade-c); }
+.seg[data-grade="D"] { --g: var(--grade-d); }
+.seg[data-grade="E"] { --g: var(--grade-e); }
+.seg[data-grade="F"] { --g: var(--grade-f); }
+
+/* The badge sits on its own colored chip so its letter stays legible on every
+   band (it carries its own on-color), and the segment fill shows the band hue. */
+.seg :global(.grade-badge) {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--bg) 55%, transparent);
+}
+
+.ticks {
+  display: flex;
+  margin-top: 6px;
+}
+
+.tick {
+  min-width: 34px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: left;
+}
+
+.tickEnd {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+}
