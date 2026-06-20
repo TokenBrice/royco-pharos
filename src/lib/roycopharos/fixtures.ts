@@ -1,4 +1,5 @@
 import type { RoycoMarketFixture, UnderlyingSummary } from "./types";
+import { pharosStablecoinUrl } from "./pharos-report-card";
 
 const ADDRESS_PREFIX = "0x000000000000000000000000000000000000";
 
@@ -23,6 +24,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 44_000_000,
     underlyingSafetyScore: 33,
     underlyingSafetyGrade: "F",
+    pharosUrl: pharosStablecoinUrl("savusd-avant"),
+    dews: dews("watch", 32, "Fixture DEWS read: share price is stable, but parent and strategy dependencies remain material."),
+    upstreamDependencies: [dep("avusd-avant", "Avant USD", "avUSD", 100, 35, "F", "strategy-vault parent")],
     summary: "Recorded Pharos fixture: yield-bearing Avant wrapper with concentrated strategy and issuer dependencies.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -35,6 +39,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 82_400_000,
     underlyingSafetyScore: 49,
     underlyingSafetyGrade: "D",
+    pharosUrl: pharosStablecoinUrl("apyusd-apyx"),
+    dews: dews("watch", 28, "Fixture DEWS read: mild peg watch from wrapper and issuer dependencies."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "reserve asset")],
     summary: "Recorded Pharos fixture: ERC-4626 wrapper exposure with issuer and governance watch items.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -47,6 +54,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 432_000_000,
     underlyingSafetyScore: 63,
     underlyingSafetyGrade: "C+",
+    pharosUrl: pharosStablecoinUrl("syrupusdc-maple"),
+    dews: dews("normal", 12, "Fixture DEWS read: no acute depeg stress reported."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "deposit asset")],
     summary: "Recorded Pharos fixture: institutional-credit vault with FIFO withdrawal and borrower concentration risk.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -59,6 +69,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 27_000_000,
     underlyingSafetyScore: 52,
     underlyingSafetyGrade: "C-",
+    pharosUrl: pharosStablecoinUrl("aa-falconx-mev-capital"),
+    dews: dews("watch", 34, "Fixture DEWS read: dependency and exit cadence keep the asset on watch."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "credit-line denomination")],
     summary: "Recorded Pharos fixture: senior credit-vault share with monthly exit and credit-line dependencies.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -71,6 +84,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 44_100_000,
     underlyingSafetyScore: 64,
     underlyingSafetyGrade: "C+",
+    pharosUrl: pharosStablecoinUrl("nusd-neutrl"),
+    dews: dews("normal", 18, "Fixture DEWS read: no acute depeg stress reported."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "settlement asset")],
     summary: "Recorded Pharos fixture: moderate dependency and redemption watch items.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -83,6 +99,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 39_000_000,
     underlyingSafetyScore: 28,
     underlyingSafetyGrade: "F",
+    pharosUrl: pharosStablecoinUrl("stcusd-cap"),
+    dews: dews("warning", 58, "Fixture DEWS read: elevated stress from basket and liquidity dependencies."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "basket constituent")],
     summary: "Recorded Pharos fixture: staked Cap wrapper with proportional-basket and liquidity caveats.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -95,6 +114,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 17_200_000,
     underlyingSafetyScore: 74,
     underlyingSafetyGrade: "C",
+    pharosUrl: pharosStablecoinUrl("eearn-ember"),
+    dews: dews("normal", 20, "Fixture DEWS read: no acute depeg stress reported."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "strategy denomination")],
     summary: "Pharos fixture: higher dependency risk than stronger tracked underlyings.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -107,6 +129,9 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 76_000_000,
     underlyingSafetyScore: 60,
     underlyingSafetyGrade: "C+",
+    pharosUrl: pharosStablecoinUrl("susdai-usd-ai"),
+    dews: dews("watch", 36, "Fixture DEWS read: queued exits and private-credit exposure keep the wrapper on watch."),
+    upstreamDependencies: [dep("usdai-usd-ai", "USD.AI", "USDai", 100, 61, "C+", "wrapper parent")],
     summary: "Recorded Pharos fixture: staked USDai wrapper with GPU-loan exposure and queued exits.",
     sourceUpdatedAt: null,
     fetchedAt: null,
@@ -119,11 +144,39 @@ export const UNDERLYING_FIXTURES: UnderlyingSummary[] = [
     supplyUsd: 28_700_000,
     underlyingSafetyScore: 78,
     underlyingSafetyGrade: "C",
+    pharosUrl: pharosStablecoinUrl("autousd-auto-finance"),
+    dews: dews("normal", 15, "Fixture DEWS read: no acute depeg stress reported."),
+    upstreamDependencies: [dep("usdc-circle", "USD Coin", "USDC", 100, 82, "A", "reserve asset")],
     summary: "Pharos fixture: Auto Finance vault share with venue and liquidity caveats.",
     sourceUpdatedAt: null,
     fetchedAt: null,
   },
 ];
+
+function dews(status: string, stressScore: number, summary: string): UnderlyingSummary["dews"] {
+  return { status, stressScore, summary, observedAt: null, updatedAt: null };
+}
+
+function dep(
+  id: string,
+  name: string,
+  symbol: string,
+  weightPct: number,
+  safetyScore: number,
+  safetyGrade: string,
+  relationship: string,
+): UnderlyingSummary["upstreamDependencies"][number] {
+  return {
+    id,
+    name,
+    symbol,
+    weightPct,
+    safetyScore,
+    safetyGrade,
+    pharosUrl: pharosStablecoinUrl(id),
+    relationship,
+  };
+}
 
 export const ROYCO_MARKET_FIXTURES: RoycoMarketFixture[] = [
   market("43114", "avalanche", "0x7240ff91b471217ff93349184abe9f102ca1955c", "Staked Avant USD", "normal", 5_659_540, 0.20849, 0.2, 0.95927, 0.9, 0, 0, "medium", [

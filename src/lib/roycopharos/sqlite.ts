@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { reportCardExtrasFromJson, serializeUnderlyingReportCard } from "./pharos-report-card";
 import { validatePublishCandidate } from "./publish-validation";
 import { ROYCOPHAROS_SCHEMA_SQL } from "./schema";
 import { readApiMetaFromSql, readSnapshotFromSql, type SqlReader, type SqlValue } from "./sql-read";
@@ -241,7 +242,7 @@ export function seedDatabase(snapshot: RoycoPharosSnapshot = buildSnapshot(), db
         underlying.supplyUsd,
         underlying.underlyingSafetyScore,
         underlying.underlyingSafetyGrade,
-        JSON.stringify({ summary: underlying.summary }),
+        serializeUnderlyingReportCard(underlying),
         "fixture",
         1,
         underlying.sourceUpdatedAt,
@@ -494,16 +495,20 @@ export function readPharosUnderlyingsFromDatabase(db?: DatabaseSync): Underlying
 
     return rows.map((row) => {
       const summaryJson = stringValue(row, "report_card_summary_json");
-      const parsed = parseJson(summaryJson);
+      const pharosStablecoinId = stringValue(row, "pharos_stablecoin_id");
+      const extras = reportCardExtrasFromJson(summaryJson, pharosStablecoinId);
       return {
-        pharosStablecoinId: stringValue(row, "pharos_stablecoin_id"),
+        pharosStablecoinId,
         symbol: stringValue(row, "symbol") ?? "unknown",
         name: stringValue(row, "name") ?? stringValue(row, "symbol") ?? "Unknown",
         price: numberValue(row, "price"),
         supplyUsd: numberValue(row, "supply_usd"),
         underlyingSafetyScore: numberValue(row, "underlying_safety_score"),
         underlyingSafetyGrade: stringValue(row, "underlying_safety_grade"),
-        summary: isObject(parsed) && typeof parsed.summary === "string" ? parsed.summary : "Pharos summary unavailable.",
+        pharosUrl: extras.pharosUrl,
+        dews: extras.dews,
+        upstreamDependencies: extras.upstreamDependencies,
+        summary: extras.summary,
         sourceUpdatedAt: numberValue(row, "source_updated_at"),
         fetchedAt: numberValue(row, "fetched_at"),
       };
@@ -535,15 +540,6 @@ function latestPublishedRun(db: DatabaseSync) {
       .prepare("SELECT * FROM royco_sync_runs WHERE published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1")
       .get() as DbRow | undefined) ?? null
   );
-}
-
-function parseJson(json: string | null): unknown {
-  if (!json) return null;
-  try {
-    return JSON.parse(json) as unknown;
-  } catch {
-    return null;
-  }
 }
 
 function stringValue(row: unknown, key: string) {

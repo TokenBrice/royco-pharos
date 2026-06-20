@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { UNDERLYING_FIXTURES } from "./fixtures";
 import { fetchWithTimeout, retryAfterMs, sleep } from "./http";
+import { extractReportCardExtras } from "./pharos-report-card";
 import type { PharosApiCacheEntry, UnderlyingSummary } from "./types";
 
 const DEFAULT_PHAROS_API_BASE = "https://api.pharos.watch";
@@ -148,10 +149,7 @@ function buildUnderlyingSummaries(requiredIds: string[], stablecoinsBody: JsonRe
     const coin = stablecoinById.get(id) ?? null;
     const card = cardById.get(id) ?? null;
     const fixture = fixtureById.get(id) ?? null;
-    const dimensions = isObject(card?.dimensions) ? card.dimensions : null;
-    // `dependencyRisk.detail` as a one-line summary is unverified against a live report-card
-    // payload; if absent we fall back to the fixture/"unavailable" text rather than fabricate.
-    const dependencyRisk = isObject(dimensions?.dependencyRisk) ? dimensions.dependencyRisk : null;
+    const extras = extractReportCardExtras({ id, card, coin, fixture });
 
     return {
       pharosStablecoinId: id,
@@ -161,7 +159,10 @@ function buildUnderlyingSummaries(requiredIds: string[], stablecoinsBody: JsonRe
       supplyUsd: supplyUsd(coin) ?? fixture?.supplyUsd ?? null,
       underlyingSafetyScore: numberValue(card, "overallScore"),
       underlyingSafetyGrade: stringValue(card, "overallGrade"),
-      summary: stringValue(dependencyRisk, "detail") ?? fixture?.summary ?? "Live Pharos report card summary unavailable.",
+      pharosUrl: extras.pharosUrl,
+      dews: extras.dews,
+      upstreamDependencies: extras.upstreamDependencies,
+      summary: extras.summary,
       sourceUpdatedAt: updatedAtFromBody(reportCardsBody) ?? updatedAtFromBody(stablecoinsBody) ?? fetchedAt,
       fetchedAt,
     } satisfies UnderlyingSummary;

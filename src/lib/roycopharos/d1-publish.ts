@@ -1,4 +1,5 @@
 import type { D1DatabaseLike, D1PreparedStatementLike } from "./d1-reader";
+import { serializeUnderlyingReportCard } from "./pharos-report-card";
 import { validatePublishCandidate } from "./publish-validation";
 import type { PharosApiCacheEntry, RoycoPharosSnapshot } from "./types";
 
@@ -177,7 +178,7 @@ export async function publishSnapshotToD1(db: D1DatabaseLike, snapshot: RoycoPha
       underlying.supplyUsd,
       underlying.underlyingSafetyScore,
       underlying.underlyingSafetyGrade,
-      JSON.stringify({ summary: underlying.summary }),
+      serializeUnderlyingReportCard(underlying),
       "fixture",
       1,
       underlying.sourceUpdatedAt,

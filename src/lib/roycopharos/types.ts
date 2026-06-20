@@ -33,9 +33,31 @@ export interface UnderlyingSummary {
   supplyUsd: number | null;
   underlyingSafetyScore: number | null;
   underlyingSafetyGrade: string | null;
+  pharosUrl: string | null;
+  dews: PharosDewsSignal | null;
+  upstreamDependencies: PharosDependency[];
   summary: string;
   sourceUpdatedAt: number | null;
   fetchedAt: number | null;
+}
+
+export interface PharosDewsSignal {
+  status: string;
+  stressScore: number | null;
+  summary: string | null;
+  observedAt: number | null;
+  updatedAt: number | null;
+}
+
+export interface PharosDependency {
+  id: string | null;
+  name: string;
+  symbol: string | null;
+  weightPct: number | null;
+  safetyScore: number | null;
+  safetyGrade: string | null;
+  pharosUrl: string | null;
+  relationship: string | null;
 }
 
 export interface PenaltyBreakdownRow {

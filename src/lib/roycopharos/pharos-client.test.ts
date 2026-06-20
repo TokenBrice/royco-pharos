@@ -50,6 +50,73 @@ describe("Pharos client", () => {
 
     expect(expiredResult.mode).toBe("fixture");
   });
+
+  it("passes DEWS, Pharos profile URL, and upstream dependencies through live report cards", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        const href = String(url);
+        if (href.endsWith("/api/stablecoins")) {
+          return Response.json({
+            peggedAssets: [{ id: "savusd-avant", symbol: "savUSD", name: "Avant Staked USD", price: 1.01 }],
+          });
+        }
+        return Response.json({
+          cards: [
+            {
+              id: "savusd-avant",
+              symbol: "savUSD",
+              overallScore: 36,
+              overallGrade: "F",
+              dews: { status: "watch", stressScore: 31, message: "Mild peg stress." },
+              dimensions: {
+                dependencyRisk: {
+                  detail: "Parent exposure dominates the dependency risk.",
+                  dependencies: [
+                    {
+                      id: "avusd-avant",
+                      symbol: "avUSD",
+                      name: "Avant USD",
+                      weight: 1,
+                      overallScore: 35,
+                      overallGrade: "F",
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        });
+      }),
+    );
+
+    const result = await loadPharosUnderlyings(["savusd-avant"], [], {
+      apiKey: "ph_live_test",
+      apiBase: "https://pharos.test",
+    });
+
+    expect(result.underlyings[0]).toMatchObject({
+      pharosStablecoinId: "savusd-avant",
+      pharosUrl: "https://pharos.watch/stablecoin/savusd-avant/",
+      dews: {
+        status: "watch",
+        stressScore: 31,
+        summary: "Mild peg stress.",
+      },
+      upstreamDependencies: [
+        {
+          id: "avusd-avant",
+          name: "Avant USD",
+          symbol: "avUSD",
+          weightPct: 100,
+          safetyScore: 35,
+          safetyGrade: "F",
+          pharosUrl: "https://pharos.watch/stablecoin/avusd-avant/",
+        },
+      ],
+      summary: "Parent exposure dominates the dependency risk.",
+    });
+  });
 });
 
 function fallbackUnderlying(fetchedAt: number): UnderlyingSummary {
@@ -61,6 +128,9 @@ function fallbackUnderlying(fetchedAt: number): UnderlyingSummary {
     supplyUsd: 1_000_000,
     underlyingSafetyScore: 92,
     underlyingSafetyGrade: "A",
+    pharosUrl: "https://pharos.watch/stablecoin/autousd/",
+    dews: null,
+    upstreamDependencies: [],
     summary: "cached",
     sourceUpdatedAt: fetchedAt,
     fetchedAt,

@@ -1,4 +1,5 @@
 import { buildApiMeta, buildWatchlist, compareTranches, coverageHeadroom, methodology, ratioToPct } from "./snapshot";
+import { reportCardExtrasFromJson } from "./pharos-report-card";
 import type {
   ApiMeta,
   ApySource,
@@ -178,16 +179,20 @@ export async function readPharosUnderlyingsFromSql(reader: SqlReader): Promise<U
 
   return rows.map((row) => {
     const summaryJson = stringValue(row, "report_card_summary_json");
-    const parsed = parseJson(summaryJson);
+    const pharosStablecoinId = stringValue(row, "pharos_stablecoin_id");
+    const extras = reportCardExtrasFromJson(summaryJson, pharosStablecoinId);
     return {
-      pharosStablecoinId: stringValue(row, "pharos_stablecoin_id"),
+      pharosStablecoinId,
       symbol: stringValue(row, "symbol") ?? "unknown",
       name: stringValue(row, "name") ?? stringValue(row, "symbol") ?? "Unknown",
       price: numberValue(row, "price"),
       supplyUsd: numberValue(row, "supply_usd"),
       underlyingSafetyScore: numberValue(row, "underlying_safety_score"),
       underlyingSafetyGrade: stringValue(row, "underlying_safety_grade"),
-      summary: isObject(parsed) && typeof parsed.summary === "string" ? parsed.summary : "Pharos summary unavailable.",
+      pharosUrl: extras.pharosUrl,
+      dews: extras.dews,
+      upstreamDependencies: extras.upstreamDependencies,
+      summary: extras.summary,
       sourceUpdatedAt: numberValue(row, "source_updated_at"),
       fetchedAt: numberValue(row, "fetched_at"),
     };
