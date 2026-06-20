@@ -13,7 +13,7 @@ RoycoPharos produces two numeric Royco scores per tranche:
 | Royco Safety Score | How much capital-risk cushion the tranche seat has. | `clamp(round(pharosBaseScore - exposureHaircut + seniorCushionCredit - trancheStructureHaircut), 0, 100)` |
 | Royco Opportunity Score | Whether APY pays enough for the risk. | `clamp(round((APY x (Safety / 100) ^ gamma) / 12% * 100), 0, 100)` |
 
-Pharos remains the vault/base-asset source of truth and is shown verbatim, including its letter grade. The UI also surfaces Pharos DEWS and upstream dependency evidence for the base asset when Pharos reports it. Those evidence fields do not change `royco-opportunity-v0.6` scoring; they explain the base asset context beside the score.
+Pharos remains the vault/base-asset source of truth and is shown verbatim, including its letter grade. The UI also surfaces Pharos peg-stability and depeg facts, the five Pharos report-card dimensions, and upstream dependency evidence for the base asset when Pharos reports it. Those evidence fields do not change `royco-opportunity-v0.6` scoring; they explain the base asset context beside the score.
 
 RoycoPharos scores the tranche seat independently in three layers: Pharos base asset, curated exposure, and tranche structure. A well-buffered Senior can score above the whole-vault Pharos score only through explicit Senior cushion credit, while a Junior can score below it because it absorbs first loss.
 

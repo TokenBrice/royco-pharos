@@ -138,9 +138,13 @@ the scorer:
 
 | Field | Meaning |
 | --- | --- |
-| `underlyingSafetyScore` / `underlyingSafetyGrade` | Pharos Safety Score and grade, shown verbatim. |
-| `dews` | Pharos DEWS signal when reported, including status, stress score, summary, and timestamps. |
-| `upstreamDependencies` | Named upstream dependencies reported by Pharos, including weight, Pharos score/grade, and link when available. |
+| `underlyingSafetyScore` / `underlyingSafetyGrade` | Pharos overall Safety Score and grade, shown verbatim. |
+| `overallBaseScore` | Pharos pre-cap base score, shown alongside the overall score. |
+| `peg` | Peg health: `pegStability` score/grade plus structured depeg facts (`activeDepeg`, `activeDepegBps`, `depegEventCount`, `lastEventAt`, `yieldBearing`). |
+| `dimensions` | The five Pharos report-card dimensions (peg stability, liquidity, resilience, decentralization, dependency risk), each with score, grade, detail, and labelled `items`. |
+| `upstreamDependencies` | What the asset is backed by, each resolved to its own Pharos score/grade, weight, relationship, and link. |
+| `variantKind` / `variantParentId` / `navToken` / `bridgeRoute` | Pharos variant and bridge-route context for the base asset. |
+| `freshness` | Per-asset degradation flags (`fallback`, `collateralDrift`, `stale`) from the report-card feed. |
 | `pharosUrl` | Link to the Pharos stablecoin dossier for the base asset. |
 
 Example:
