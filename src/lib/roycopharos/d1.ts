@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { D1Reader, type D1DatabaseLike } from "./d1-reader";
+import { D1Reader } from "./d1-reader";
 import {
+  readApiMetaFromSql,
   readLatestSyncRunFromSql,
   readSnapshotFromSql,
   readTrancheHistoryFromSql,
@@ -18,11 +19,11 @@ export async function readLatestSyncRunFromD1() {
   return readLatestSyncRunFromSql(await getD1Reader());
 }
 
+export async function readApiMetaFromD1() {
+  return readApiMetaFromSql(await getD1Reader());
+}
+
 async function getD1Reader() {
   const { env } = await getCloudflareContext({ async: true });
-  const db = (env as { DB?: D1DatabaseLike }).DB;
-  if (!db) {
-    throw new Error("ROYCOPHAROS_STORAGE=d1 requires a Cloudflare D1 binding named DB.");
-  }
-  return new D1Reader(db);
+  return new D1Reader((env as CloudflareEnv).DB);
 }

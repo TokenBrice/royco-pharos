@@ -1,23 +1,43 @@
 import { buildSnapshot, methodology } from "./snapshot";
+import { deriveSnapshotHealth, unavailableSnapshotHealth } from "./snapshot-health";
 
-export async function getRoycoPharosSnapshot() {
+export class SnapshotUnavailableError extends Error {
+  constructor(message = "RoycoPharos snapshot is unavailable") {
+    super(message);
+    this.name = "SnapshotUnavailableError";
+  }
+}
+
+export async function getRoycoPharosSnapshotOrNull() {
   if (useD1Storage()) {
     const { readSnapshotFromD1 } = await import("./d1");
-    const snapshot = await readSnapshotFromD1();
-    if (!snapshot) {
-      throw new Error("RoycoPharos production D1 snapshot is unavailable. Run migrations and publish a sync before serving traffic.");
-    }
-    return snapshot;
+    return readSnapshotFromD1();
   }
 
   const { readSnapshotFromDatabase, seedDatabase } = await import("./sqlite");
-  let snapshot = readSnapshotFromDatabase();
+  let snapshot = await readSnapshotFromDatabase();
   if (!snapshot) {
-    seedDatabase(buildSnapshot());
-    snapshot = readSnapshotFromDatabase();
+    seedDatabase(buildSnapshot(), undefined, {
+      job: "local-auto-seed",
+      metadata: {
+        roycoMode: "recorded-fixture",
+        pharosMode: "fixture",
+        localAutoSeed: true,
+      },
+    });
+    snapshot = await readSnapshotFromDatabase();
   }
+  return snapshot;
+}
+
+export async function getRoycoPharosSnapshot() {
+  const snapshot = await getRoycoPharosSnapshotOrNull();
   if (!snapshot) {
-    throw new Error("RoycoPharos snapshot is unavailable");
+    throw new SnapshotUnavailableError(
+      useD1Storage()
+        ? "RoycoPharos production D1 snapshot is unavailable. Run migrations and publish a sync before serving traffic."
+        : "RoycoPharos snapshot is unavailable",
+    );
   }
   return snapshot;
 }
@@ -44,45 +64,32 @@ export async function getTrancheHistory(trancheId: string, days: number) {
   return readTrancheHistoryFromDatabase(trancheId, days);
 }
 
+export async function getApiMeta() {
+  if (useD1Storage()) {
+    const { readApiMetaFromD1 } = await import("./d1");
+    return readApiMetaFromD1();
+  }
+
+  const { readApiMetaFromDatabase } = await import("./sqlite");
+  return readApiMetaFromDatabase();
+}
+
+export async function getTrancheHistoryWithMeta(trancheId: string, days: number) {
+  const [lastRun, meta, history] = await Promise.all([readLatestSyncRunForRuntime(), getApiMeta(), getTrancheHistory(trancheId, days)]);
+  if (useD1Storage() && !lastRun?.published) {
+    throw new SnapshotUnavailableError("RoycoPharos production D1 snapshot is unavailable. Run migrations and publish a sync before serving traffic.");
+  }
+  return { meta, history };
+}
+
 export async function getMethodology() {
   return methodology();
 }
 
 export async function getHealth() {
-  const snapshot = await getRoycoPharosSnapshot();
   const lastRun = await readLatestSyncRunForRuntime();
-  const trancheCounts = snapshot.tranches.reduce(
-    (counts, tranche) => {
-      if (tranche.mappingStatus === "mapped") counts.mapped += 1;
-      if (tranche.mappingStatus === "conflict") counts.conflict += 1;
-      if (tranche.scoreStatus === "nr") counts.nr += 1;
-      if (tranche.scoreStatus === "low_confidence") counts.lowConfidence += 1;
-      if (tranche.scoreStatus === "stale") counts.stale += 1;
-      return counts;
-    },
-    { mapped: 0, conflict: 0, nr: 0, lowConfidence: 0, stale: 0 },
-  );
-  const freshness = {
-    royco: snapshot.meta.royco.status,
-    pharos: snapshot.meta.pharos.status,
-    score: snapshot.meta.score.status,
-  };
-  const allFresh = freshness.royco === "fresh" && freshness.pharos === "fresh" && freshness.score === "fresh";
-  return {
-    ok: snapshot.tranches.length >= 18,
-    degraded: lastRun?.status === "degraded" || !allFresh,
-    generatedAt: snapshot.generatedAt,
-    marketCount: snapshot.markets.length,
-    trancheCount: snapshot.tranches.length,
-    mappedTrancheCount: trancheCounts.mapped,
-    conflictCount: trancheCounts.conflict,
-    nrCount: trancheCounts.nr,
-    lowConfidenceCount: trancheCounts.lowConfidence,
-    staleCount: trancheCounts.stale,
-    freshness,
-    lastRun,
-    meta: snapshot.meta,
-  };
+  const snapshot = await getRoycoPharosSnapshotOrNull();
+  return snapshot ? deriveSnapshotHealth(snapshot, lastRun) : unavailableSnapshotHealth(lastRun);
 }
 
 async function readLatestSyncRunForRuntime() {

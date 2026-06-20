@@ -1,4 +1,4 @@
-import { closeSync, openSync, rmSync, statSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { ROYCO_MARKET_FIXTURES, UNDERLYING_FIXTURES } from "./fixtures";
 import { loadPharosUnderlyings } from "./pharos-client";
@@ -18,6 +18,7 @@ function lockPath() {
 // older than LOCK_STALE_MS is treated as abandoned (a crashed sync) and stolen.
 function acquireSyncLock(): number | null {
   const path = lockPath();
+  mkdirSync(dirname(path), { recursive: true });
   try {
     return openSync(path, "wx");
   } catch {
@@ -81,10 +82,8 @@ async function runSync(mode: SyncMode) {
           warning: null,
         }
       : await loadPharosUnderlyings(requiredPharosIds, cachedUnderlyings);
-  const pharosFetchedAt = Math.max(
-    ...pharos.underlyings.map((underlying) => underlying.fetchedAt ?? 0).filter((value) => value > 0),
-    now,
-  );
+  const pharosFetchTimes = pharos.underlyings.map((underlying) => underlying.fetchedAt ?? 0).filter((value) => value > 0);
+  const pharosFetchedAt = pharosFetchTimes.length > 0 ? Math.max(...pharosFetchTimes) : now;
   const snapshot = buildSnapshot(now, marketFixtures, pharos.underlyings, {
     collectedAt: now,
     pharosFetchedAt,
@@ -94,6 +93,7 @@ async function runSync(mode: SyncMode) {
     job: `sync:${mode}`,
     upstreamCount: royco?.upstreamCount ?? marketFixtures.length,
     rawPayloadSampleJson: royco?.rawPayloadSampleJson,
+    parseErrorCount: royco?.parseErrorCount ?? 0,
     pharosCacheEntries: pharos.cacheEntries,
     metadata: {
       roycoMode: royco?.mode ?? "db-reuse",

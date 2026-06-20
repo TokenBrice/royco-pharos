@@ -34,6 +34,13 @@ CREATE TABLE IF NOT EXISTS royco_sync_runs (
   published_at INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS sync_locks (
+  name TEXT PRIMARY KEY,
+  owner TEXT NOT NULL,
+  acquired_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS royco_markets (
   chain_id INTEGER NOT NULL,
   chain_slug TEXT NOT NULL,
@@ -197,4 +204,7 @@ CREATE INDEX IF NOT EXISTS idx_royco_tranche_history_tranche_time
 
 CREATE INDEX IF NOT EXISTS idx_royco_sync_runs_published
   ON royco_sync_runs (published_at DESC, status);
+
+CREATE INDEX IF NOT EXISTS idx_sync_locks_expires
+  ON sync_locks (expires_at);
 `;

@@ -163,6 +163,11 @@ export async function readLatestSyncRunFromSql(reader: SqlReader): Promise<SyncR
   };
 }
 
+export async function readApiMetaFromSql(reader: SqlReader): Promise<ApiMeta> {
+  const now = Math.floor(Date.now() / 1000);
+  return readApiMeta(reader, now, await latestPublishedRun(reader));
+}
+
 export async function readPharosUnderlyingsFromSql(reader: SqlReader): Promise<UnderlyingSummary[]> {
   const rows = await reader.all(
     `SELECT pharos_stablecoin_id, symbol, name, price, supply_usd, underlying_safety_score,
@@ -258,18 +263,18 @@ async function readMarketHistoryRowsByMarkets(reader: SqlReader, markets: { chai
   if (markets.length === 0) return histories;
 
   const cutoff = Math.floor(Date.now() / 1000) - days * 86_400;
-  const conditions = markets.map(() => "(chain_id = ? AND market_id = ?)").join(" OR ");
-  const params = markets.flatMap((market) => [market.chainId, market.marketId] satisfies SqlValue[]);
+  const requested = new Set(markets.map((market) => `${market.chainId}:${market.marketId}`));
   const rows = await reader.all(
     `SELECT chain_id, market_id, observed_at, tvl_usd, coverage_ratio, utilization_ratio
      FROM royco_market_history
-     WHERE (${conditions}) AND observed_at >= ?
+     WHERE observed_at >= ?
      ORDER BY chain_id ASC, market_id ASC, observed_at ASC`,
-    [...params, cutoff],
+    [cutoff],
   );
 
   for (const row of rows) {
     const key = `${numberValue(row, "chain_id") ?? 0}:${stringValue(row, "market_id") ?? ""}`;
+    if (!requested.has(key)) continue;
     const history = histories.get(key) ?? { coverage: [], utilization: [], tvl: [] };
     const observedAt = numberValue(row, "observed_at") ?? 0;
     history.coverage.push({ observedAt, value: numberValue(row, "coverage_ratio") });
@@ -304,18 +309,19 @@ async function readTrancheHistoryRowsByIds(reader: SqlReader, trancheIds: string
   if (trancheIds.length === 0) return histories;
 
   const cutoff = Math.floor(Date.now() / 1000) - days * 86_400;
-  const placeholders = trancheIds.map(() => "?").join(", ");
+  const requested = new Set(trancheIds);
   const rows = await reader.all(
     `SELECT tranche_id, observed_at, apy_current_pct, tvl_usd
      FROM royco_tranche_history
-     WHERE tranche_id IN (${placeholders}) AND observed_at >= ?
+     WHERE observed_at >= ?
      ORDER BY tranche_id ASC, observed_at ASC`,
-    [...trancheIds, cutoff],
+    [cutoff],
   );
 
   for (const row of rows) {
     const trancheId = stringValue(row, "tranche_id");
     if (!trancheId) continue;
+    if (!requested.has(trancheId)) continue;
     const history = histories.get(trancheId) ?? { apy: [], tvl: [] };
     const observedAt = numberValue(row, "observed_at") ?? 0;
     history.apy.push({ observedAt, value: numberValue(row, "apy_current_pct") });

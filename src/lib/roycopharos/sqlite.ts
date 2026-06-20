@@ -2,27 +2,20 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { validatePublishCandidate } from "./publish-validation";
 import { ROYCOPHAROS_SCHEMA_SQL } from "./schema";
-import { buildApiMeta, buildSnapshot, buildWatchlist, compareTranches, coverageHeadroom, methodology, ratioToPct } from "./snapshot";
+import { readApiMetaFromSql, readSnapshotFromSql, type SqlReader, type SqlValue } from "./sql-read";
+import { buildSnapshot } from "./snapshot";
 import type {
-  ApiMeta,
-  ApySource,
-  HistoryPoint,
-  MappingStatus,
-  MarketStatus,
-  PenaltyBreakdownRow,
   PharosApiCacheEntry,
-  RoycoMarketView,
   RoycoPharosSnapshot,
-  RoycoTrancheView,
-  ScoreStatus,
-  TrancheSide,
   UnderlyingSummary,
 } from "./types";
 
 interface SeedDatabaseOptions {
   job?: string;
   upstreamCount?: number;
+  parseErrorCount?: number;
   rawPayloadSampleJson?: string;
   pharosCacheEntries?: PharosApiCacheEntry[];
   metadata?: Record<string, unknown>;
@@ -101,7 +94,14 @@ export function seedDatabase(snapshot: RoycoPharosSnapshot = buildSnapshot(), db
   try {
     const existingTrancheCount = numberValue(db.prepare("SELECT COUNT(*) AS count FROM royco_tranches").get() as DbRow, "count") ?? 0;
     const computedTrancheCount = snapshot.tranches.filter((tranche) => tranche.scoreStatus !== "nr").length;
-    const validation = validateCandidate(snapshot.tranches.length, computedTrancheCount, existingTrancheCount > 0);
+    const latestPublishedAt = numberValue(latestPublishedRun(db), "published_at");
+    const validation = validatePublishCandidate({
+      trancheCount: snapshot.tranches.length,
+      computedTrancheCount,
+      hasPrior: existingTrancheCount > 0,
+      latestPublishedAt,
+      generatedAt: snapshot.generatedAt,
+    });
 
     db.prepare(
       `INSERT INTO royco_sync_runs (
@@ -117,7 +117,7 @@ export function seedDatabase(snapshot: RoycoPharosSnapshot = buildSnapshot(), db
       options.upstreamCount ?? snapshot.markets.length,
       snapshot.markets.length,
       snapshot.tranches.length,
-      0,
+      options.parseErrorCount ?? 0,
       rawHash,
       rawPayload.slice(0, 12_000),
       startedAt,
@@ -406,132 +406,11 @@ export function seedDatabase(snapshot: RoycoPharosSnapshot = buildSnapshot(), db
   }
 }
 
-interface CandidateValidation {
-  publish: boolean;
-  status: "ok" | "degraded";
-  errorCode: string | null;
-}
-
-/**
- * Decide whether a freshly-built candidate snapshot may replace the published one.
- * Richer than a bare count check: when a prior good snapshot exists we refuse an undersized
- * candidate (keeps last-known-good) and refuse an all-NR collapse (e.g. Pharos fully down).
- * On first boot (no prior) we publish whatever we have so the app has something to serve.
- */
-function validateCandidate(trancheCount: number, computedTrancheCount: number, hasPrior: boolean): CandidateValidation {
-  if (trancheCount === 0) {
-    return { publish: false, status: "degraded", errorCode: "candidate_empty" };
-  }
-  if (hasPrior) {
-    if (trancheCount < 18) {
-      return { publish: false, status: "degraded", errorCode: "candidate_tranche_count_below_floor" };
-    }
-    if (computedTrancheCount === 0) {
-      return { publish: false, status: "degraded", errorCode: "candidate_all_nr" };
-    }
-    return { publish: true, status: "ok", errorCode: null };
-  }
-  return trancheCount >= 18
-    ? { publish: true, status: "ok", errorCode: null }
-    : { publish: true, status: "degraded", errorCode: "bootstrap_below_floor" };
-}
-
-export function readSnapshotFromDatabase(dbInput?: DatabaseSync): RoycoPharosSnapshot | null {
+export async function readSnapshotFromDatabase(dbInput?: DatabaseSync): Promise<RoycoPharosSnapshot | null> {
   const db = dbInput ?? openDatabase();
   const owned = !dbInput;
   try {
-    const marketRows = db.prepare("SELECT * FROM royco_markets ORDER BY tvl_usd DESC, name ASC").all() as DbRow[];
-    if (marketRows.length === 0) return null;
-
-    const underlyings = readPharosUnderlyingsFromDatabase(db);
-    const underlyingById = new Map(underlyings.map((underlying) => [underlying.pharosStablecoinId, underlying]));
-    const underlyingBySymbol = new Map(underlyings.map((underlying) => [underlying.symbol, underlying]));
-    const trancheRows = db
-      .prepare(
-        `SELECT
-          t.tranche_id, t.chain_id, t.market_id, t.side, t.vault_address,
-          t.deposit_token_symbol, t.deposit_token_name, t.deposit_token_address, t.deposit_token_decimals,
-          t.share_token_symbol, t.share_token_name, t.share_token_address, t.share_token_decimals,
-          t.mapping_status, t.pharos_stablecoin_id, t.apy_current_raw, t.apy_current_pct,
-          t.apy_7d_raw, t.apy_7d_pct, t.tvl_usd AS tranche_tvl_usd,
-          t.source_observed_at AS tranche_source_observed_at, t.collected_at AS tranche_collected_at,
-          t.published_at AS tranche_published_at,
-          m.chain_slug, m.market_key, m.name AS market_name, m.listing_type, m.status_normalized,
-          m.coverage_ratio, m.required_coverage_ratio, m.utilization_ratio, m.utilization_limit_ratio,
-          s.score_status, s.nr_reason, s.underlying_safety_score, s.underlying_safety_grade,
-          s.base_asset_score, s.exposure_score, s.exposure_haircut, s.tranche_structure_score,
-          s.tranche_haircut, s.safety_score, s.safety_grade, s.apy_used_pct, s.apy_source,
-          s.opportunity_yield, s.opportunity_score, s.opportunity_grade,
-          s.penalty_breakdown_json, s.input_hash, s.methodology_version, s.computed_at
-        FROM royco_tranches t
-        JOIN royco_markets m ON m.chain_id = t.chain_id AND m.market_id = t.market_id
-        LEFT JOIN tranche_scores s ON s.tranche_id = t.tranche_id`,
-      )
-      .all() as DbRow[];
-
-    const trancheIds = trancheRows.map((row) => stringValue(row, "tranche_id")).filter((id): id is string => Boolean(id));
-    const trancheHistoryById = readTrancheHistoryRowsByIds(db, trancheIds, 30);
-
-    const tranches = trancheRows.map((row) => buildTrancheViewFromRow(row, trancheHistoryById)).sort(compareTranches);
-    const tranchesByMarketKey = new Map<string, RoycoTrancheView[]>();
-    for (const tranche of tranches) {
-      const entries = tranchesByMarketKey.get(tranche.marketKey) ?? [];
-      entries.push(tranche);
-      tranchesByMarketKey.set(tranche.marketKey, entries);
-    }
-
-    const markets: RoycoMarketView[] = marketRows.map((row) => {
-      const marketKey = stringValue(row, "market_key") ?? `${numberValue(row, "chain_id")}:${stringValue(row, "market_id")}`;
-      const marketTranches = tranchesByMarketKey.get(marketKey) ?? [];
-      const distinctUnderlyings = new Map<string, UnderlyingSummary>();
-      for (const tranche of marketTranches) {
-        const underlying =
-          underlyingById.get(tranche.pharosStablecoinId) ??
-          underlyingBySymbol.get(tranche.depositTokenSymbol ?? "") ??
-          null;
-        if (underlying) distinctUnderlyings.set(underlying.pharosStablecoinId ?? underlying.symbol, underlying);
-      }
-
-      const coverageRatio = numberValue(row, "coverage_ratio");
-      const requiredCoverageRatio = numberValue(row, "required_coverage_ratio");
-      return {
-        chainId: numberValue(row, "chain_id") ?? 0,
-        chainSlug: stringValue(row, "chain_slug") ?? "unknown",
-        marketId: stringValue(row, "market_id") ?? "",
-        marketKey,
-        name: stringValue(row, "name") ?? "Royco Dawn market",
-        listingType: stringValue(row, "listing_type") ?? "unknown",
-        statusNormalized: marketStatusValue(row, "status_normalized"),
-        tvlUsd: numberValue(row, "tvl_usd"),
-        coverageRatio,
-        requiredCoverageRatio,
-        coverageHeadroomPct: coverageHeadroom(coverageRatio, requiredCoverageRatio),
-        utilizationRatio: ratioToPct(numberValue(row, "utilization_ratio")),
-        utilizationLimitRatio: ratioToPct(numberValue(row, "utilization_limit_ratio")),
-        drawdownRatio: numberValue(row, "drawdown_ratio"),
-        totalDrawdowns: numberValue(row, "total_drawdowns"),
-        juniorRedemptionDelaySeconds: numberValue(row, "junior_redemption_delay_seconds"),
-        sourceObservedAt: numberValue(row, "source_observed_at"),
-        collectedAt: numberValue(row, "collected_at") ?? 0,
-        publishedAt: numberValue(row, "published_at") ?? 0,
-        tranches: marketTranches.sort(compareTranches),
-        underlyings: [...distinctUnderlyings.values()],
-        history: readMarketHistoryRows(db, numberValue(row, "chain_id") ?? 0, stringValue(row, "market_id") ?? "", 30),
-      };
-    });
-
-    const now = Math.floor(Date.now() / 1000);
-    const run = latestPublishedRun(db);
-    const generatedAt = numberValue(run, "published_at") ?? Math.max(...markets.map((market) => market.publishedAt));
-    return {
-      generatedAt,
-      markets,
-      tranches,
-      underlyings,
-      watchlist: buildWatchlist(tranches),
-      meta: readApiMeta(db, now, run),
-      methodology: methodology(),
-    };
+    return await readSnapshotFromSql(new DatabaseSqlReader(db));
   } finally {
     if (owned) db.close();
   }
@@ -544,6 +423,16 @@ export function readTrancheHistoryFromDatabase(trancheId: string, days: number, 
     const row = db.prepare("SELECT tranche_id FROM royco_tranches WHERE tranche_id = ?").get(trancheId) as DbRow | undefined;
     if (!row) return null;
     return readTrancheHistoryRows(db, trancheId, days);
+  } finally {
+    if (owned) db.close();
+  }
+}
+
+export async function readApiMetaFromDatabase(dbInput?: DatabaseSync) {
+  const db = dbInput ?? openDatabase();
+  const owned = !dbInput;
+  try {
+    return await readApiMetaFromSql(new DatabaseSqlReader(db));
   } finally {
     if (owned) db.close();
   }
@@ -624,84 +513,6 @@ export function readPharosUnderlyingsFromDatabase(db?: DatabaseSync): Underlying
   }
 }
 
-function buildTrancheViewFromRow(row: DbRow, trancheHistoryById: Map<string, { apy: HistoryPoint[]; tvl: HistoryPoint[] }>): RoycoTrancheView {
-  const trancheId = stringValue(row, "tranche_id") ?? "";
-  const coverageRatio = numberValue(row, "coverage_ratio");
-  const requiredCoverageRatio = numberValue(row, "required_coverage_ratio");
-  return {
-    trancheId,
-    chainId: numberValue(row, "chain_id") ?? 0,
-    chainSlug: stringValue(row, "chain_slug") ?? "unknown",
-    marketId: stringValue(row, "market_id") ?? "",
-    marketKey: stringValue(row, "market_key") ?? `${numberValue(row, "chain_id")}:${stringValue(row, "market_id")}`,
-    marketName: stringValue(row, "market_name") ?? "Royco Dawn market",
-    side: trancheSideValue(row, "side"),
-    vaultAddress: stringValue(row, "vault_address") ?? "",
-    depositTokenSymbol: stringValue(row, "deposit_token_symbol"),
-    depositTokenName: stringValue(row, "deposit_token_name"),
-    depositTokenAddress: stringValue(row, "deposit_token_address"),
-    depositTokenDecimals: numberValue(row, "deposit_token_decimals"),
-    shareTokenSymbol: stringValue(row, "share_token_symbol"),
-    shareTokenName: stringValue(row, "share_token_name"),
-    shareTokenAddress: stringValue(row, "share_token_address"),
-    shareTokenDecimals: numberValue(row, "share_token_decimals"),
-    mappingStatus: mappingStatusValue(row, "mapping_status"),
-    pharosStablecoinId: stringValue(row, "pharos_stablecoin_id"),
-    apyCurrentRaw: numberValue(row, "apy_current_raw"),
-    apyCurrentPct: numberValue(row, "apy_current_pct"),
-    apy7dRaw: numberValue(row, "apy_7d_raw"),
-    apy7dPct: numberValue(row, "apy_7d_pct"),
-    tvlUsd: numberValue(row, "tranche_tvl_usd"),
-    coverageRatio,
-    requiredCoverageRatio,
-    coverageHeadroomPct: coverageHeadroom(coverageRatio, requiredCoverageRatio),
-    utilizationRatio: ratioToPct(numberValue(row, "utilization_ratio")),
-    utilizationLimitRatio: ratioToPct(numberValue(row, "utilization_limit_ratio")),
-    statusNormalized: marketStatusValue(row, "status_normalized"),
-    sourceObservedAt: numberValue(row, "tranche_source_observed_at"),
-    collectedAt: numberValue(row, "tranche_collected_at") ?? 0,
-    publishedAt: numberValue(row, "tranche_published_at") ?? 0,
-    scoreStatus: scoreStatusValue(row, "score_status"),
-    nrReason: stringValue(row, "nr_reason"),
-    baseAssetScore: numberValue(row, "base_asset_score") ?? numberValue(row, "underlying_safety_score"),
-    underlyingSafetyScore: numberValue(row, "underlying_safety_score"),
-    underlyingSafetyGrade: stringValue(row, "underlying_safety_grade"),
-    exposureScore: numberValue(row, "exposure_score"),
-    exposureHaircut: numberValue(row, "exposure_haircut"),
-    trancheStructureScore: numberValue(row, "tranche_structure_score"),
-    trancheHaircut: numberValue(row, "tranche_haircut"),
-    safetyScore: numberValue(row, "safety_score"),
-    safetyGrade: stringValue(row, "safety_grade"),
-    apyUsedPct: numberValue(row, "apy_used_pct"),
-    apySource: apySourceValue(row, "apy_source"),
-    opportunityYield: numberValue(row, "opportunity_yield"),
-    opportunityScore: numberValue(row, "opportunity_score"),
-    opportunityGrade: stringValue(row, "opportunity_grade"),
-    penaltyBreakdown: penaltyRows(stringValue(row, "penalty_breakdown_json")),
-    inputHash: stringValue(row, "input_hash") ?? "sha256-missing",
-    methodologyVersion: stringValue(row, "methodology_version") ?? "unknown",
-    computedAt: numberValue(row, "computed_at") ?? 0,
-    history: trancheHistoryById.get(trancheId) ?? { apy: [], tvl: [] },
-  };
-}
-
-function readMarketHistoryRows(db: DatabaseSync, chainId: number, marketId: string, days: number) {
-  const cutoff = Math.floor(Date.now() / 1000) - days * 86_400;
-  const rows = db
-    .prepare(
-      `SELECT observed_at, tvl_usd, coverage_ratio, utilization_ratio
-       FROM royco_market_history
-       WHERE chain_id = ? AND market_id = ? AND observed_at >= ?
-       ORDER BY observed_at ASC`,
-    )
-    .all(chainId, marketId, cutoff) as DbRow[];
-  return {
-    coverage: rows.map((row) => ({ observedAt: numberValue(row, "observed_at") ?? 0, value: numberValue(row, "coverage_ratio") })),
-    utilization: rows.map((row) => ({ observedAt: numberValue(row, "observed_at") ?? 0, value: ratioToPct(numberValue(row, "utilization_ratio")) })),
-    tvl: rows.map((row) => ({ observedAt: numberValue(row, "observed_at") ?? 0, value: numberValue(row, "tvl_usd") })),
-  };
-}
-
 function readTrancheHistoryRows(db: DatabaseSync, trancheId: string, days: number) {
   const cutoff = Math.floor(Date.now() / 1000) - days * 86_400;
   const rows = db
@@ -718,57 +529,12 @@ function readTrancheHistoryRows(db: DatabaseSync, trancheId: string, days: numbe
   };
 }
 
-function readTrancheHistoryRowsByIds(db: DatabaseSync, trancheIds: string[], days: number) {
-  const histories = new Map<string, { apy: HistoryPoint[]; tvl: HistoryPoint[] }>();
-  for (const trancheId of trancheIds) {
-    histories.set(trancheId, { apy: [], tvl: [] });
-  }
-  if (trancheIds.length === 0) return histories;
-
-  const cutoff = Math.floor(Date.now() / 1000) - days * 86_400;
-  const placeholders = trancheIds.map(() => "?").join(", ");
-  const rows = db
-    .prepare(
-      `SELECT tranche_id, observed_at, apy_current_pct, tvl_usd
-       FROM royco_tranche_history
-       WHERE tranche_id IN (${placeholders}) AND observed_at >= ?
-       ORDER BY tranche_id ASC, observed_at ASC`,
-    )
-    .all(...trancheIds, cutoff) as DbRow[];
-
-  for (const row of rows) {
-    const trancheId = stringValue(row, "tranche_id");
-    if (!trancheId) continue;
-    const history = histories.get(trancheId) ?? { apy: [], tvl: [] };
-    const observedAt = numberValue(row, "observed_at") ?? 0;
-    history.apy.push({ observedAt, value: numberValue(row, "apy_current_pct") });
-    history.tvl.push({ observedAt, value: numberValue(row, "tvl_usd") });
-    histories.set(trancheId, history);
-  }
-
-  return histories;
-}
-
-function readApiMeta(db: DatabaseSync, now: number, run: DbRow | null): ApiMeta {
-  const royco = db.prepare("SELECT MAX(collected_at) AS collected_at, MAX(published_at) AS published_at FROM royco_markets").get() as DbRow;
-  const pharos = db.prepare("SELECT MAX(fetched_at) AS fetched_at FROM pharos_underlying_summaries").get() as DbRow;
-  const collectedAt = numberValue(royco, "collected_at") ?? now;
-  const pharosFetchedAt = numberValue(pharos, "fetched_at") ?? collectedAt;
-  const publishedAt = numberValue(run, "published_at") ?? numberValue(royco, "published_at") ?? collectedAt;
-  return buildApiMeta(now, collectedAt, pharosFetchedAt, publishedAt, stringValue(run, "raw_payload_hash") ?? "sha256-db");
-}
-
 function latestPublishedRun(db: DatabaseSync) {
   return (
     (db
       .prepare("SELECT * FROM royco_sync_runs WHERE published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1")
       .get() as DbRow | undefined) ?? null
   );
-}
-
-function penaltyRows(json: string | null): PenaltyBreakdownRow[] {
-  const parsed = parseJson(json);
-  return Array.isArray(parsed) ? (parsed as PenaltyBreakdownRow[]) : [];
 }
 
 function parseJson(json: string | null): unknown {
@@ -788,28 +554,16 @@ function numberValue(row: unknown, key: string) {
   return isObject(row) && typeof row[key] === "number" && Number.isFinite(row[key]) ? row[key] : null;
 }
 
-function mappingStatusValue(row: DbRow, key: string): MappingStatus {
-  const value = stringValue(row, key);
-  return value === "mapped" || value === "unmapped" || value === "conflict" ? value : "unmapped";
-}
+class DatabaseSqlReader implements SqlReader {
+  constructor(private readonly db: DatabaseSync) {}
 
-function marketStatusValue(row: DbRow, key: string): MarketStatus {
-  const value = stringValue(row, key);
-  return value === "normal" || value === "protected" || value === "unhealthy" || value === "critical" ? value : null;
-}
+  async all(sql: string, params: SqlValue[] = []) {
+    return this.db.prepare(sql).all(...params) as DbRow[];
+  }
 
-function scoreStatusValue(row: DbRow, key: string): ScoreStatus {
-  const value = stringValue(row, key);
-  return value === "computed" || value === "low_confidence" || value === "nr" || value === "stale" ? value : "nr";
-}
-
-function trancheSideValue(row: DbRow, key: string): TrancheSide {
-  return stringValue(row, key) === "junior" ? "junior" : "senior";
-}
-
-function apySourceValue(row: DbRow, key: string): ApySource {
-  const value = stringValue(row, key);
-  return value === "current" || value === "7d" || value === "none" ? value : "none";
+  async get(sql: string, params: SqlValue[] = []) {
+    return (this.db.prepare(sql).get(...params) as DbRow | undefined) ?? null;
+  }
 }
 
 function isObject(value: unknown): value is DbRow {

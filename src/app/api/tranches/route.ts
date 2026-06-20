@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
 import { getRoycoPharosSnapshot } from "@/lib/roycopharos/repository";
+import { CACHE, handleApiError, jsonOk } from "../_responses";
 
 export async function GET() {
-  const snapshot = await getRoycoPharosSnapshot();
-  return NextResponse.json(
-    {
-      data: snapshot.tranches,
-      _meta: snapshot.meta,
-    },
-    {
-      headers: {
-        "Cache-Control": "s-maxage=60, stale-while-revalidate=240",
+  try {
+    const snapshot = await getRoycoPharosSnapshot();
+    return jsonOk(
+      {
+        data: snapshot.tranches,
+        _meta: snapshot.meta,
       },
-    },
-  );
+      CACHE.short,
+    );
+  } catch (error) {
+    return handleApiError(error);
+  }
 }
