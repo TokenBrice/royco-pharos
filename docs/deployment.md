@@ -10,12 +10,14 @@ royco.pharos.watch
 
 ```text
 GitHub Actions
-  -> npm ci / typecheck / test / build
+  -> CI on pull request and push to main
+  -> successful CI push to main triggers production deploy
+  -> npm ci / typecheck / test
   -> OpenNext Cloudflare build
   -> D1 migrations
   -> web Worker deploy
   -> sync Worker deploy
-  -> optional manual sync trigger
+  -> post-deploy sync trigger
   -> /api/health smoke gate
   -> royco.pharos.watch
        reads Cloudflare D1 binding DB
@@ -62,7 +64,7 @@ Set these repository or environment secrets:
 | --- | --- |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account target for Wrangler |
 | `CLOUDFLARE_API_TOKEN` | Deploy and D1 migration access |
-| `SYNC_ADMIN_TOKEN` | Optional GitHub environment secret used by the deploy workflow to trigger the sync Worker before the health gate |
+| `SYNC_ADMIN_TOKEN` | GitHub environment secret used by automatic production deploys, and by manual deploys when `trigger_sync` is enabled, to trigger the sync Worker before the health gate |
 
 The Cloudflare API token needs permission to deploy Workers and apply D1 migrations for the account.
 
@@ -71,7 +73,15 @@ Set these GitHub environment variables for staging and production, or provide th
 | Variable | Purpose |
 | --- | --- |
 | `ROYCOPHAROS_HEALTH_URL` | Web host or full `/api/health` URL checked after deploy |
-| `ROYCOPHAROS_SYNC_URL` | Sync Worker URL used for the optional initial sync trigger, including `?mode=all` if desired |
+| `ROYCOPHAROS_SYNC_URL` | Sync Worker URL used for automatic production deploys, and by manual deploys when `trigger_sync` is enabled, including `?mode=all` if desired |
+
+## Automatic Production Deploys
+
+Pushes to `main` run the `CI` workflow. When that workflow completes successfully for a `push` event on `main`, the `Deploy` workflow automatically deploys production.
+
+The automatic production path uses the production GitHub environment, runs the same validation steps as manual deploys, applies remote D1 migrations, deploys the web Worker and sync Worker, triggers the sync Worker, then runs the `/api/health` smoke gate. It also verifies that the CI run's commit still matches `origin/main` before deploying, so a slower stale CI run cannot redeploy an older commit over a newer push.
+
+If the GitHub `production` environment has required reviewers configured, the automatic workflow will pause for that environment approval before deployment. Remove that protection if production should deploy without human approval after CI passes.
 
 ## First Staging Deploy
 
@@ -99,7 +109,9 @@ npm run smoke:health -- https://<staging-web-host>
 
 ## First Production Deploy
 
-After replacing the production D1 ID and validating staging:
+After replacing the production D1 ID, validating staging, and configuring the production GitHub environment secrets and variables, push to `main` and let the automatic production deploy run after CI passes.
+
+For an immediate local production deploy:
 
 ```bash
 npm run deploy:production
@@ -125,7 +137,7 @@ curl -X POST \
 npm run smoke:health -- "https://royco.pharos.watch"
 ```
 
-The manual GitHub deploy workflow can automate the same sequence. Set `ROYCOPHAROS_SYNC_URL`, `ROYCOPHAROS_HEALTH_URL`, and `SYNC_ADMIN_TOKEN` on the selected GitHub environment, or provide `sync_url` and `health_url` when dispatching. The final health step fails unless `/api/health` returns JSON with `ok: true`.
+The GitHub deploy workflow can also be run manually for staging, production reruns, or recovery deploys. Set `ROYCOPHAROS_SYNC_URL`, `ROYCOPHAROS_HEALTH_URL`, and `SYNC_ADMIN_TOKEN` on the selected GitHub environment, or provide `sync_url` and `health_url` when dispatching. The final health step fails unless `/api/health` returns JSON with `ok: true`.
 
 ## Build And Preview
 
@@ -155,7 +167,7 @@ Implemented now:
 - D1 read adapter for UI/API routes when `ROYCOPHAROS_STORAGE=d1`.
 - D1 write path for the Cloudflare sync Worker.
 - Scheduled Worker config for periodic Royco Dawn and Pharos refreshes.
-- GitHub CI and manual deployment workflows.
+- GitHub CI, automatic production deploys, and manual deployment workflows.
 - Runtime dependency audit in CI.
 - Post-deploy `/api/health` smoke gate.
 

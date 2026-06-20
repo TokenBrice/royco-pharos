@@ -1,6 +1,13 @@
 name: Deploy
 
 on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       environment:
@@ -26,50 +33,71 @@ on:
         type: boolean
 
 concurrency:
-  group: deploy-${{ inputs.environment }}
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
   cancel-in-progress: false
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
+    env:
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Guard automatic deploy target
+        id: auto_guard
+        if: ${{ github.event_name == 'workflow_run' }}
+        run: |
+          current_sha="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          if [ "$current_sha" != "${{ github.event.workflow_run.head_sha }}" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping stale deploy for ${{ github.event.workflow_run.head_sha }}; origin/main is ${current_sha}."
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup Node
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: npm
 
       - name: Install dependencies
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         run: npm ci
 
       - name: Typecheck
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         run: npm run typecheck
 
       - name: Test
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         run: npm run test
 
       - name: Deploy staging
-        if: ${{ inputs.environment == 'staging' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true') && env.DEPLOY_ENV == 'staging' }}
         run: npm run deploy:staging
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy production
-        if: ${{ inputs.environment == 'production' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true') && env.DEPLOY_ENV == 'production' }}
         run: npm run deploy:production
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Trigger initial sync
-        if: ${{ inputs.trigger_sync }}
+        if: ${{ (github.event_name == 'workflow_run' && steps.auto_guard.outputs.deploy == 'true') || (github.event_name == 'workflow_dispatch' && inputs.trigger_sync) }}
         env:
-          SYNC_URL: ${{ inputs.sync_url || vars.ROYCOPHAROS_SYNC_URL }}
+          SYNC_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.sync_url || vars.ROYCOPHAROS_SYNC_URL }}
           SYNC_ADMIN_TOKEN: ${{ secrets.SYNC_ADMIN_TOKEN }}
         run: |
           if [ -z "$SYNC_URL" ]; then
@@ -85,6 +113,7 @@ jobs:
             "${SYNC_URL}"
 
       - name: Verify deployed health
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         env:
-          ROYCOPHAROS_HEALTH_URL: ${{ inputs.health_url || vars.ROYCOPHAROS_HEALTH_URL }}
+          ROYCOPHAROS_HEALTH_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.health_url || vars.ROYCOPHAROS_HEALTH_URL }}
         run: npm run smoke:health
