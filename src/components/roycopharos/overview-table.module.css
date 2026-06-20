@@ -6,6 +6,127 @@
    wrapper scrolls horizontally on narrow widths.
    ============================================================ */
 
+/* ---- controls ---- */
+.controls {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.controlTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+}
+
+.segmented button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.segmented button:last-child {
+  border-right: 0;
+}
+
+.segmented button:hover {
+  color: var(--ink);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--brand);
+  color: var(--surface-1);
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: min(100%, 280px);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.searchField span {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.searchField input {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--ink);
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.searchField input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.focusFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focusFilters button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.focusFilters button:hover,
+.focusFilters button[aria-pressed="true"] {
+  border-color: color-mix(in oklch, var(--brand) 45%, var(--hairline));
+  background: var(--info-wash);
+  color: var(--brand-ink);
+}
+
+.focusFilters .resetButton {
+  border-color: var(--hairline-strong);
+  color: var(--ink-soft);
+}
+
+.resultLine {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
 /* The shared column track — header, summary and subline rows all
    reference it so every cell stays aligned across the spine. Col 1
    is the Safety heat-spine, col 2 the market/tranche name. */
@@ -291,3 +412,205 @@
 /* hover affordance, matching the table hover language */
 .summaryRow:hover { background: color-mix(in oklch, var(--brand) 7%, var(--surface-2)); }
 .subRow:hover { background: color-mix(in oklch, var(--brand) 6%, var(--surface-1)); }
+
+/* ---- mobile evidence cards ---- */
+.mobileBook {
+  display: none;
+}
+
+.mobileGroup {
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--hairline);
+}
+
+.mobileMarket,
+.mobileTranche {
+  background: var(--surface-1);
+}
+
+.mobileMarket {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  background: var(--surface-2);
+}
+
+.mobileMarketTitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 10px;
+}
+
+.mobileMarketTitle strong {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mobileChain {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mobileMarketVitals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--hairline);
+}
+
+.mobileMarketVitals > span {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 9px;
+  background: var(--surface-1);
+}
+
+.mobileMarketVitals > span:first-child {
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+}
+
+.mobileMarketVitals > span:first-child .cellLabel {
+  grid-column: 1 / -1;
+}
+
+.mobileTranche {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  border-top: 1px solid var(--hairline);
+}
+
+.mobileTranche[data-flagged] {
+  background: color-mix(in oklch, var(--warn) 6%, var(--surface-1));
+}
+
+.mobileTrancheTop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobileIdentity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mobileIdentity strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mobileIdentity span {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.mobileApy {
+  display: grid;
+  justify-items: end;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mobileApy small {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileScoreLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mobileEvidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mobileEvidence > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mobileEvidence b {
+  font-size: 13px;
+}
+
+.mobileEmpty {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .controls {
+    padding: 12px;
+  }
+
+  .controlTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .segmented {
+    width: 100%;
+  }
+
+  .segmented button {
+    flex: 1;
+  }
+
+  .searchField {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .desktopWrap {
+    display: none;
+  }
+
+  .mobileBook {
+    display: grid;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  .mobileMarketVitals {
+    grid-template-columns: 1fr;
+  }
+
+  .mobileEvidence {
+    grid-template-columns: 1fr;
+  }
+}

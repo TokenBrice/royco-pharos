@@ -533,7 +533,15 @@ button, input, select { font: inherit; }
   background: var(--surface-2);
   overflow: hidden;
 }
-.microbar__fill { height: 100%; border-radius: inherit; background: var(--good); transition: width var(--dur) var(--ease-out); }
+.microbar__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--good);
+  transform-origin: left center;
+  transition: transform var(--dur) var(--ease-out);
+}
 .microbar__fill[data-level="warn"] { background: var(--warn); }
 .microbar__fill[data-level="bad"] { background: var(--bad); }
 .microbar__limit {
@@ -607,7 +615,49 @@ button, input, select { font: inherit; }
 
 /* opportunity scatter — stablecoin-logo markers on a Safety × Opportunity field.
    ring color = Safety band · ring shape = seat (closed Senior / notched Junior) · size = TVL */
-.oscatter { --plot-h: 340px; display: grid; gap: 14px; }
+.oscatter { --plot-h: 340px; display: grid; align-content: start; gap: 14px; margin: 0; }
+
+.oscatter__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.oscatter__segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+}
+
+.oscatter__segmented button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.oscatter__segmented button:last-child { border-right: 0; }
+.oscatter__segmented button:hover { color: var(--ink); }
+.oscatter__segmented button[aria-pressed="true"] {
+  background: var(--brand);
+  color: var(--surface-1);
+}
+
+.oscatter__filter-count {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
 .oscatter__frame {
   display: grid;
@@ -670,6 +720,11 @@ button, input, select { font: inherit; }
 .oscatter__pt[data-grade="F"] { --ring: var(--grade-f); }
 .oscatter__pt[data-grade="NR"] { --ring: var(--grade-nr); }
 .oscatter__pt[data-star] { box-shadow: 0 0 0 3px var(--info-wash), 0 0 0 4px color-mix(in oklch, var(--brand) 55%, transparent); }
+.oscatter__pt[data-highlight] { z-index: 5; }
+.oscatter__pt[data-muted] {
+  opacity: 0.46;
+  filter: none;
+}
 
 .oscatter__ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 /* flex (not block) so the inline-grid logo carries no line-box leading and centers exactly on the ring */
@@ -735,6 +790,8 @@ button, input, select { font: inherit; }
 
 @media (max-width: 640px) {
   .oscatter { --plot-h: 300px; }
+  .oscatter__toolbar { align-items: flex-start; flex-direction: column; }
+  .oscatter__pt[data-muted] { opacity: 0.36; }
 }
 @media (prefers-reduced-motion: reduce) {
   .oscatter__pt { transition: none; }

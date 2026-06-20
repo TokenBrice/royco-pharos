@@ -55,7 +55,7 @@ export function MicroBar({
   const limitPct = limit == null || !Number.isFinite(limit) ? null : Math.max(0, Math.min(100, (limit / max) * 100));
   return (
     <span className="microbar" role="img" aria-label={label ?? `${Math.round(pct)} percent`}>
-      <span className="microbar__fill" data-level={level} style={{ width: `${pct}%` }} />
+      <span className="microbar__fill" data-level={level} style={{ transform: `scaleX(${pct / 100})` }} />
       {limitPct != null ? <span className="microbar__limit" style={{ left: `${limitPct}%` }} /> : null}
     </span>
   );

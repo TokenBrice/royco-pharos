@@ -9,7 +9,7 @@
   display: grid;
   grid-template-columns: minmax(0, 0.68fr) minmax(0, 1fr);
   gap: clamp(22px, 4vw, 48px);
-  align-items: stretch;
+  align-items: start;
   margin-bottom: clamp(28px, 5vw, 48px);
 }
 
@@ -76,7 +76,99 @@
   color: var(--ink-soft);
 }
 
-/* two complementary lead cards: safest seat + best-paid risk */
+/* compact trust verdict: one read before the user compares rows */
+.snapshotRead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--snapshot-line, var(--hairline));
+  border-radius: var(--r-md);
+  background: var(--snapshot-wash, var(--surface-1));
+}
+
+.snapshotRead[data-tone="good"] {
+  --snapshot-line: color-mix(in oklch, var(--good) 32%, var(--hairline));
+  --snapshot-wash: color-mix(in oklch, var(--good) 6%, var(--surface-1));
+}
+
+.snapshotRead[data-tone="watch"] {
+  --snapshot-line: color-mix(in oklch, var(--warn) 36%, var(--hairline));
+  --snapshot-wash: color-mix(in oklch, var(--warn) 8%, var(--surface-1));
+}
+
+.snapshotRead[data-tone="bad"] {
+  --snapshot-line: color-mix(in oklch, var(--bad) 32%, var(--hairline));
+  --snapshot-wash: color-mix(in oklch, var(--bad) 6%, var(--surface-1));
+}
+
+.snapshotVerdict {
+  display: grid;
+  gap: 5px;
+}
+
+.snapshotVerdict span {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.snapshotVerdict p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.snapshotFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--hairline);
+}
+
+.snapshotFacts span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  background: var(--surface-1);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.snapshotFacts b {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.snapshotFacts span[data-flag="watch"] b {
+  color: var(--warn-ink);
+}
+
+.snapshotFacts span[data-flag="bad"] b {
+  color: var(--bad-ink);
+}
+
+.snapshotLink {
+  justify-self: start;
+  color: var(--brand-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.snapshotLink:hover,
+.snapshotLink:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* two complementary lead cards: safest seat + largest grade gap */
 .signals {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -188,11 +280,17 @@
 /* right column: the scatter panel */
 .scatterPanel {
   display: grid;
+  align-content: start;
   gap: 12px;
   padding: 20px;
 }
 
-.scatterPanel h2 {
+.scatterHead {
+  display: grid;
+  gap: 5px;
+}
+
+.scatterHead h2 {
   margin: 0;
   font-family: var(--font-serif), Georgia, serif;
   font-size: 20px;
@@ -201,8 +299,20 @@
   letter-spacing: -0.01em;
 }
 
+.scatterHead p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .scatterPanel :global(.oscatter) {
   --plot-h: clamp(380px, 30vw, 430px);
+}
+
+.mobileDivergences {
+  display: none;
 }
 
 .changes > :global(.subtle:last-child) {
@@ -251,10 +361,60 @@
   .signals {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
+
 }
 
 @media (max-width: 640px) {
+  .snapshotFacts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .scatterPanel :global(.oscatter) {
     --plot-h: 300px;
+  }
+
+  .mobileDivergences {
+    display: grid;
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sm);
+    background: var(--hairline);
+  }
+
+  .mobileDivergences > span,
+  .mobileDivergences a {
+    background: var(--surface-1);
+  }
+
+  .mobileDivergences > span {
+    padding: 9px 11px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .mobileDivergences a {
+    display: grid;
+    gap: 2px;
+    padding: 10px 11px;
+  }
+
+  .mobileDivergences strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .mobileDivergences span:last-child {
+    color: var(--muted);
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .snapshotFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

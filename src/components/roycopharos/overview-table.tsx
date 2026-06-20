@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useDeferredValue, useId, useMemo, useState } from "react";
 import { AssetLogo } from "./asset-logo";
 import { DataBadge } from "./badges";
 import { GradeBadge, ScorePair, SeatRing } from "./grade";
@@ -12,6 +12,8 @@ import { exposureFor } from "@/lib/roycopharos/exposure";
 import styles from "./overview-table.module.css";
 
 type HistoryPoint = { observedAt: number; value: number | null };
+type SeatFilter = "all" | "senior" | "junior";
+type FocusFilter = "all" | "attention" | "nr" | "gap";
 
 type TrancheRow = {
   trancheId: string;
@@ -58,6 +60,29 @@ function isFlagged(t: TrancheRow) {
   );
 }
 
+function hasMissingOrLowConfidence(t: TrancheRow) {
+  return t.scoreStatus === "nr" || t.scoreStatus === "low_confidence" || t.scoreStatus === "stale" || t.safetyScore == null;
+}
+
+function hasOpportunityGap(t: TrancheRow) {
+  return t.safetyScore != null && t.opportunityScore != null && t.opportunityScore - t.safetyScore >= 20;
+}
+
+function matchesQuery(t: TrancheRow, query: string) {
+  if (!query) return true;
+  const terms = [
+    t.marketName,
+    t.depositTokenSymbol,
+    t.chainSlug,
+    t.side,
+    t.pharosStablecoinId,
+    strategyClassOf(t),
+    t.mappingStatus,
+    t.scoreStatus,
+  ];
+  return terms.some((term) => term?.toLowerCase().includes(query));
+}
+
 function strategyClassOf(t: TrancheRow) {
   return exposureFor(t.pharosStablecoinId)?.strategyClass ?? null;
 }
@@ -90,10 +115,26 @@ type Group = {
 };
 
 export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
+  const [seatFilter, setSeatFilter] = useState<SeatFilter>("all");
+  const [focusFilter, setFocusFilter] = useState<FocusFilter>("all");
+  const [query, setQuery] = useState("");
+  const searchId = useId();
+  const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+
+  const filteredTranches = useMemo(() => {
+    return tranches.filter((t) => {
+      if (seatFilter !== "all" && t.side !== seatFilter) return false;
+      if (focusFilter === "attention" && !isFlagged(t)) return false;
+      if (focusFilter === "nr" && !hasMissingOrLowConfidence(t)) return false;
+      if (focusFilter === "gap" && !hasOpportunityGap(t)) return false;
+      return matchesQuery(t, deferredQuery);
+    });
+  }, [tranches, seatFilter, focusFilter, deferredQuery]);
+
   // Group tranches by market while preserving the server's risk-first order.
   const groups = useMemo<Group[]>(() => {
     const byKey = new Map<string, Group>();
-    tranches.forEach((t, i) => {
+    filteredTranches.forEach((t, i) => {
       let g = byKey.get(t.marketKey);
       if (!g) {
         g = {
@@ -124,11 +165,72 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
     }
 
     return list.sort((a, b) => a.serverIndex - b.serverIndex);
-  }, [tranches]);
+  }, [filteredTranches]);
+
+  const counts = useMemo(
+    () => ({
+      attention: tranches.filter(isFlagged).length,
+      nr: tranches.filter(hasMissingOrLowConfidence).length,
+      gap: tranches.filter(hasOpportunityGap).length,
+    }),
+    [tranches],
+  );
+
+  const hasFilters = seatFilter !== "all" || focusFilter !== "all" || query.trim() !== "";
+  const resetFilters = () => {
+    setSeatFilter("all");
+    setFocusFilter("all");
+    setQuery("");
+  };
 
   return (
     <div className="overview">
-      <div className="data-table-wrap">
+      <div className={styles.controls} aria-label="Ranked book controls">
+        <div className={styles.controlTop}>
+          <div className={styles.segmented} role="group" aria-label="Filter by tranche seat">
+            {(["all", "senior", "junior"] as const).map((value) => (
+              <button key={value} type="button" aria-pressed={seatFilter === value} onClick={() => setSeatFilter(value)}>
+                {value === "all" ? "All seats" : titleSeat(value)}
+              </button>
+            ))}
+          </div>
+          <label className={styles.searchField} htmlFor={searchId}>
+            <span>Search</span>
+            <input
+              id={searchId}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              type="search"
+              placeholder="Market, asset, chain"
+            />
+          </label>
+        </div>
+        <div className={styles.focusFilters} role="group" aria-label="Filter by risk focus">
+          <button type="button" aria-pressed={focusFilter === "all"} onClick={() => setFocusFilter("all")}>
+            All
+          </button>
+          <button type="button" aria-pressed={focusFilter === "attention"} onClick={() => setFocusFilter("attention")}>
+            Attention <span className="num">{counts.attention}</span>
+          </button>
+          <button type="button" aria-pressed={focusFilter === "nr"} onClick={() => setFocusFilter("nr")}>
+            NR / low confidence <span className="num">{counts.nr}</span>
+          </button>
+          <button type="button" aria-pressed={focusFilter === "gap"} onClick={() => setFocusFilter("gap")}>
+            Opportunity gap <span className="num">{counts.gap}</span>
+          </button>
+          {hasFilters ? (
+            <button type="button" className={styles.resetButton} onClick={resetFilters}>
+              Reset
+            </button>
+          ) : null}
+        </div>
+        <p className={styles.resultLine}>
+          Showing <span className="num">{filteredTranches.length}</span> of <span className="num">{tranches.length}</span>{" "}
+          tranches in default risk-first order.
+        </p>
+      </div>
+
+      <div className={`data-table-wrap ${styles.desktopWrap}`}>
         <div className={styles.ledger} role="table" aria-label="Vault ledger">
           <div className={styles.headRow} role="row">
             <span role="columnheader">Asset / tranche</span>
@@ -256,11 +358,120 @@ export function OverviewTable({ tranches }: { tranches: TrancheRow[] }) {
 
           {groups.length === 0 ? (
             <div className="overview-empty" role="row">
-              <span role="cell">No tranches available.</span>
+              <span role="cell">No tranches match these filters.</span>
             </div>
           ) : null}
         </div>
       </div>
+
+      <div className={styles.mobileBook} aria-label="Mobile ranked tranche evidence">
+        {groups.map((g) => (
+          <section key={g.marketKey} className={styles.mobileGroup}>
+            <div className={styles.mobileMarket}>
+              <div className={styles.mobileMarketTitle}>
+                <Link href={`/markets/${encodeURIComponent(g.marketKey)}`}>
+                  <strong>{g.marketName}</strong>
+                </Link>
+                <span className={styles.mobileChain}>{g.chainSlug}</span>
+                <StatusDot status={g.statusNormalized} />
+              </div>
+              <div className={styles.mobileMarketVitals}>
+                <span>
+                  <span className={styles.cellLabel}>Pharos safety</span>
+                  <GradeBadge grade={g.underlyingSafetyGrade} size="sm" />
+                  <b className="num">{g.underlyingSafetyScore ?? "NR"}</b>
+                </span>
+                <span>
+                  <span className={styles.cellLabel}>Market TVL</span>
+                  <b className="num">{formatUsd(g.tvlUsd)}</b>
+                </span>
+                <span>
+                  <span className={styles.cellLabel}>Junior buffer</span>
+                  <b className="num">{formatRatio(g.coverageRatio)}</b>
+                </span>
+              </div>
+            </div>
+
+            {g.tranches.map((t) => {
+              const lowLiquidity = t.tvlUsd != null && t.tvlUsd < 100_000;
+              const flagged = isFlagged(t);
+              return (
+                <Link
+                  href={`/markets/${encodeURIComponent(t.marketKey)}`}
+                  key={t.trancheId}
+                  className={styles.mobileTranche}
+                  data-flagged={flagged ? "" : undefined}
+                >
+                  <span className={styles.mobileTrancheTop}>
+                    <span className={styles.marker} aria-hidden="true">
+                      <SeatRing seat={t.side} grade={t.safetyGrade} className={styles.markerRing} />
+                      <span className={styles.markerLogo}>
+                        <AssetLogo symbol={t.depositTokenSymbol} size={24} />
+                      </span>
+                    </span>
+                    <span className={styles.mobileIdentity}>
+                      <strong>
+                        {t.depositTokenSymbol ?? "Unmapped"} {titleSeat(t.side)}
+                      </strong>
+                      <span>
+                        {strategyClassOf(t) ?? "Exposure unknown"} · {SEAT_LABEL[t.side]}
+                      </span>
+                    </span>
+                    <span className={styles.mobileApy}>
+                      {formatPct(t.apyCurrentPct)}
+                      <small>APY</small>
+                    </span>
+                  </span>
+
+                  <span className={styles.mobileScoreLine}>
+                    <ScorePair
+                      safetyScore={t.safetyScore}
+                      opportunityScore={t.opportunityScore}
+                      safetyGrade={t.safetyGrade}
+                      opportunityGrade={t.opportunityGrade}
+                      status={t.scoreStatus}
+                      showLabels
+                      size="sm"
+                    />
+                    {t.scoreStatus !== "computed" ? <DataBadge value={t.scoreStatus} /> : null}
+                    {t.mappingStatus !== "mapped" ? <DataBadge value={t.mappingStatus} /> : null}
+                    {lowLiquidity ? <span className={styles.thin}>Thin liquidity</span> : null}
+                  </span>
+
+                  <span className={styles.mobileEvidence}>
+                    <span>
+                      <span className={styles.cellLabel}>Headroom</span>
+                      <b className="num">{formatPct(t.coverageHeadroomPct)}</b>
+                      <MicroBar
+                        value={t.coverageHeadroomPct}
+                        max={100}
+                        level={headroomLevel(t.coverageHeadroomPct)}
+                        label={`Coverage headroom ${formatPct(t.coverageHeadroomPct)}`}
+                      />
+                    </span>
+                    <span>
+                      <span className={styles.cellLabel}>Utilization</span>
+                      <b className="num">{formatPct(t.utilizationRatio)}</b>
+                      <MicroBar
+                        value={t.utilizationRatio}
+                        max={100}
+                        limit={t.utilizationLimitRatio}
+                        level={utilizationLevel(t.utilizationRatio, t.utilizationLimitRatio)}
+                        label={`Utilization ${formatPct(t.utilizationRatio)}`}
+                      />
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </section>
+        ))}
+        {groups.length === 0 ? <p className={styles.mobileEmpty}>No tranches match these filters.</p> : null}
+      </div>
     </div>
   );
+}
+
+function titleSeat(side: TrancheRow["side"]) {
+  return side === "senior" ? "Senior" : "Junior";
 }

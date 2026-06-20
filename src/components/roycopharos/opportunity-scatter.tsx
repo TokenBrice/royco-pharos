@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { GRADE_LETTERS, gradeIndex, GradeBadge, SeatRing } from "./grade";
 import { AssetLogo } from "./asset-logo";
 import { formatUsd } from "./format";
@@ -34,6 +37,13 @@ const yPct = (score: number) => 100 - score;
 // Every marker is one uniform size so the stablecoin logos stay legible and consistent;
 // TVL lives in the hover detail rather than the marker diameter.
 const MARKER = 38; // px diameter
+type SeatFilter = "all" | "senior" | "junior";
+
+const SEAT_FILTERS: { value: SeatFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "senior", label: "Senior" },
+  { value: "junior", label: "Junior" },
+];
 
 /**
  * Safety (x, improves right) × Opportunity (y, improves up) for every tranche.
@@ -41,26 +51,49 @@ const MARKER = 38; // px diameter
  * the ring line-style encodes the seat (solid = Senior/protected, dashed = Junior/first-loss).
  * The upper-left region is "richly paid for risk".
  */
-export function OpportunityScatter({ tranches }: { tranches: ScatterTranche[] }) {
-  const pts = tranches
-    .map((t) => ({ t, s: t.safetyScore, o: t.opportunityScore, band: gradeIndex(t.safetyGrade) }))
-    .filter(
-      (p): p is { t: ScatterTranche; s: number; o: number; band: number | null } =>
-        p.s != null && Number.isFinite(p.s) && p.o != null && Number.isFinite(p.o),
-    );
+export function OpportunityScatter({
+  tranches,
+  highlightTrancheIds = [],
+}: {
+  tranches: ScatterTranche[];
+  highlightTrancheIds?: string[];
+}) {
+  const [seatFilter, setSeatFilter] = useState<SeatFilter>("all");
+  const highlightKey = highlightTrancheIds.join("|");
+  const highlightSet = useMemo(() => new Set(highlightTrancheIds), [highlightKey, highlightTrancheIds]);
+  const hasHighlights = highlightSet.size > 0;
+
+  const pts = useMemo(
+    () =>
+      tranches
+        .map((t) => ({ t, s: t.safetyScore, o: t.opportunityScore, band: gradeIndex(t.safetyGrade) }))
+        .filter(
+          (p): p is { t: ScatterTranche; s: number; o: number; band: number | null } =>
+            p.s != null && Number.isFinite(p.s) && p.o != null && Number.isFinite(p.o),
+        ),
+    [tranches],
+  );
+
+  const visiblePts = useMemo(
+    () => (seatFilter === "all" ? pts : pts.filter((p) => p.t.side === seatFilter)),
+    [pts, seatFilter],
+  );
 
   // Group near-coincident markers (rounded to the nearest 5 score points) so logos spread
   // around their shared cell instead of stacking into an unreadable pile.
-  const groups = new Map<string, typeof pts>();
-  for (const p of pts) {
-    const k = `${Math.round(p.s / 5) * 5}:${Math.round(p.o / 5) * 5}`;
-    const arr = groups.get(k);
-    if (arr) arr.push(p);
-    else groups.set(k, [p]);
-  }
+  const groups = useMemo(() => {
+    const grouped = new Map<string, typeof visiblePts>();
+    for (const p of visiblePts) {
+      const k = `${Math.round(p.s / 5) * 5}:${Math.round(p.o / 5) * 5}`;
+      const arr = grouped.get(k);
+      if (arr) arr.push(p);
+      else grouped.set(k, [p]);
+    }
+    return grouped;
+  }, [visiblePts]);
 
-  const star = mostDivergent(tranches);
-  const placed = pts.map((p) => {
+  const star = useMemo(() => mostDivergent(tranches), [tranches]);
+  const placed = visiblePts.map((p) => {
     const k = `${Math.round(p.s / 5) * 5}:${Math.round(p.o / 5) * 5}`;
     const group = groups.get(k)!;
     const idx = group.indexOf(p);
@@ -77,15 +110,33 @@ export function OpportunityScatter({ tranches }: { tranches: ScatterTranche[] })
       place: top < 24 ? "below" : "above",
       align: left < 17 ? "left" : left > 83 ? "right" : "center",
       isStar: star != null && star.tranche.trancheId === p.t.trancheId,
+      isHighlighted: highlightSet.has(p.t.trancheId),
     };
   });
 
   const ariaLabel = star
-    ? `Scatter of ${pts.length} tranches by Safety and Opportunity score. Most divergent: ${star.tranche.marketName} ${star.tranche.side}, Safety ${star.tranche.safetyScore}, Opportunity ${star.tranche.opportunityScore}.`
-    : `Scatter of ${pts.length} tranches by Safety and Opportunity score.`;
+    ? `Scatter of ${visiblePts.length} visible tranches by Safety and Opportunity score. Largest gap: ${star.tranche.marketName} ${star.tranche.side}, Safety ${star.tranche.safetyScore}, Opportunity ${star.tranche.opportunityScore}.`
+    : `Scatter of ${visiblePts.length} visible tranches by Safety and Opportunity score.`;
 
   return (
     <figure className="oscatter">
+      <div className="oscatter__toolbar">
+        <div className="oscatter__segmented" role="group" aria-label="Filter scatter by seat">
+          {SEAT_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              aria-pressed={seatFilter === filter.value}
+              onClick={() => setSeatFilter(filter.value)}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <span className="oscatter__filter-count">
+          <span className="num">{visiblePts.length}</span> shown
+        </span>
+      </div>
       <div className="oscatter__frame">
         <span className="oscatter__axis-title oscatter__axis-title--y">Opportunity score →</span>
 
@@ -120,23 +171,21 @@ export function OpportunityScatter({ tranches }: { tranches: ScatterTranche[] })
             {placed.map((p) => {
               const letter = p.band == null ? "NR" : GRADE_LETTERS[p.band];
               const seatLabel = p.t.side === "senior" ? "Senior, protected" : "Junior, first-loss";
+              const conciseLabel = `${p.t.marketName}, ${seatLabel}. Safety ${p.t.safetyScore}, Opportunity ${p.t.opportunityScore}, TVL ${formatUsd(p.t.tvlUsd)}.`;
               return (
                 <a
                   key={p.t.trancheId}
                   className="oscatter__pt"
                   href={`/markets/${encodeURIComponent(p.t.marketKey)}`}
-                  // Only the headline "best-paid risk" marker is a keyboard stop; the rest of the
-                  // data is reachable via the table fallback below, so 18 tab stops aren't needed.
-                  tabIndex={p.isStar ? 0 : -1}
-                  aria-hidden={p.isStar ? undefined : true}
-                  aria-label={
-                    p.isStar
-                      ? `Best-paid risk: ${p.t.marketName}, ${seatLabel}. Safety ${p.t.safetyScore}, Opportunity ${p.t.opportunityScore}. View market.`
-                      : undefined
-                  }
+                  // Keep the plot from becoming dozens of tab stops; the full data is in the
+                  // table fallback, while highlighted decision points remain keyboard-reachable.
+                  tabIndex={p.isStar || p.isHighlighted ? 0 : -1}
+                  aria-label={p.isStar ? `Largest Opportunity/Safety gap: ${conciseLabel} View market.` : conciseLabel}
                   data-grade={letter}
                   data-seat={p.t.side}
                   data-star={p.isStar ? "" : undefined}
+                  data-highlight={p.isHighlighted ? "" : undefined}
+                  data-muted={hasHighlights && !p.isHighlighted ? "" : undefined}
                   style={{ left: `${p.left}%`, top: `${p.top}%`, ["--d" as string]: `${p.d}px` }}
                 >
                   <SeatRing seat={p.t.side} grade={p.t.safetyGrade} className="oscatter__ring" />
@@ -223,7 +272,7 @@ export function OpportunityScatter({ tranches }: { tranches: ScatterTranche[] })
             </tr>
           </thead>
           <tbody>
-            {tranches.map((t) => (
+            {visiblePts.map(({ t }) => (
               <tr key={t.trancheId}>
                 <td>{t.marketName}</td>
                 <td>{t.side}</td>

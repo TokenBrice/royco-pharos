@@ -28,12 +28,28 @@ function logoFile(symbol: string | null | undefined): string | null {
  * circle so logos with their own background stay tidy), otherwise a monogram fallback.
  * Decorative by default: the symbol text sits beside it, so alt is empty.
  */
-export function AssetLogo({ symbol, size = 24 }: { symbol: string | null | undefined; size?: number }) {
+export function AssetLogo({
+  symbol,
+  size = 24,
+  priority = false,
+}: {
+  symbol: string | null | undefined;
+  size?: number;
+  priority?: boolean;
+}) {
   const file = logoFile(symbol);
   if (file) {
     return (
       <span className="asset-logo" style={{ width: size, height: size }}>
-        <img src={`/assets/logos/${file}`} alt="" width={size} height={size} loading="lazy" decoding="async" />
+        <img
+          src={`/assets/logos/${file}`}
+          alt=""
+          width={size}
+          height={size}
+          loading={priority ? "eager" : "lazy"}
+          decoding={priority ? "sync" : "async"}
+          fetchPriority={priority ? "high" : undefined}
+        />
       </span>
     );
   }
