@@ -38,4 +38,11 @@ describe("token mapping resolution", () => {
     const r = resolveMapping(1, "0x9be9294722f8aad37b11a9792be2c782182cafa2", "eEARN");
     expect(r.decimals).toBe(6);
   });
+
+  it("maps ACRED by the reviewed Ethereum contract address", () => {
+    const r = resolveMapping(1, "0x17418038ecf73ba4026c4f428547bf099706f27b", "ACRED");
+    expect(r.mappingStatus).toBe("mapped");
+    expect(r.pharosStablecoinId).toBe("acred-apollo-securitize");
+    expect(r.decimals).toBe(6);
+  });
 });

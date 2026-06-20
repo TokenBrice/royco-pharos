@@ -98,6 +98,15 @@ export const EXPOSURE_BY_PHAROS_ID: Record<string, ExposureProfile> = {
     riskScore: 58,
     riskRationale: "ERC-4626 mechanics are legible, but issuer and governance dependencies stay on watch.",
   },
+  "acred-apollo-securitize": {
+    strategyClass: "Tokenized private credit fund",
+    yieldSource: "Apollo Diversified Credit fund NAV and credit income",
+    primaryRisk: "Private-credit losses, NAV opacity, and centralized fund administration",
+    liquidityProfile: "Fund redemption process and secondary-market liquidity",
+    pegBehavior: "accruing",
+    riskScore: 49,
+    riskRationale: "Recognizable manager and fund reporting help, but private-credit liquidity and centralized administration keep exposure risk elevated.",
+  },
   "savusd-avant": {
     strategyClass: "Concentrated yield wrapper",
     yieldSource: "Single concentrated yield strategy",

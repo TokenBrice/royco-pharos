@@ -24,6 +24,7 @@ export const TOKEN_MAPPINGS: TokenMappingEntry[] = [
   { chainId: 1, address: "0x9be9294722f8aad37b11a9792be2c782182cafa2", symbol: "eEARN", pharosStablecoinId: "eearn-ember", decimals: 6, confidence: "manual" },
   { chainId: 42161, address: "0x0b2b2b2076d95dda7817e785989fe353fe955ef9", symbol: "sUSDai", pharosStablecoinId: "susdai-usd-ai", decimals: 18, confidence: "manual" },
   { chainId: 1, address: "0xa7569a44f348d3d70d8ad5889e50f78e33d80d35", symbol: "autoUSD", pharosStablecoinId: "autousd-auto-finance", decimals: 18, confidence: "manual" },
+  { chainId: 1, address: "0x17418038ecf73ba4026c4f428547bf099706f27b", symbol: "ACRED", pharosStablecoinId: "acred-apollo-securitize", decimals: 6, confidence: "manual" },
 ];
 
 export interface MappingResolution {
