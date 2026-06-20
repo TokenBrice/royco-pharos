@@ -1,6 +1,6 @@
 # Scoring
 
-Current methodology version: `royco-opportunity-v0.6`.
+Current methodology version: `royco-opportunity-v0.7`.
 
 The scoring engine lives in `src/lib/roycopharos/scoring.ts`. Tests live in `src/lib/roycopharos/scoring.test.ts`. The methodology page renders its bands and factor rows from the same constants to reduce drift.
 
@@ -13,7 +13,7 @@ RoycoPharos produces two numeric Royco scores per tranche:
 | Royco Safety Score | How much capital-risk cushion the tranche seat has. | `clamp(round(pharosBaseScore - exposureHaircut + seniorCushionCredit - trancheStructureHaircut), 0, 100)` |
 | Royco Opportunity Score | Whether APY pays enough for the risk. | `clamp(round((APY x (Safety / 100) ^ gamma) / 12% * 100), 0, 100)` |
 
-Pharos remains the vault/base-asset source of truth and is shown verbatim, including its letter grade. The UI also surfaces Pharos peg-stability and depeg facts, the five Pharos report-card dimensions, and upstream dependency evidence for the base asset when Pharos reports it. Those evidence fields do not change `royco-opportunity-v0.6` scoring; they explain the base asset context beside the score.
+Pharos remains the vault/base-asset source of truth and is shown verbatim, including its letter grade. The UI also surfaces Pharos peg-stability and depeg facts, the five Pharos report-card dimensions, and upstream dependency evidence for the base asset when Pharos reports it. Those evidence fields do not change `royco-opportunity-v0.7` scoring; they explain the base asset context beside the score.
 
 RoycoPharos scores the tranche seat independently in three layers: Pharos base asset, curated exposure, and tranche structure. A well-buffered Senior can score above the whole-vault Pharos score only through explicit Senior cushion credit, while a Junior can score below it because it absorbs first loss.
 
@@ -47,7 +47,7 @@ RoycoPharos scores the tranche seat independently in three layers: Pharos base a
 | `exposureScore` / `exposureHaircut` | Layer 2 curated exposure score and bounded exposure haircut. |
 | `trancheStructureScore` / `trancheHaircut` | Layer 3 tranche structure score and bounded structure haircut. |
 | `safetyScore` / `safetyGrade` | Capital-risk score and compatibility band. |
-| `apyUsedPct` / `apySource` | Current APY, 7d fallback, or no positive APY. |
+| `apyUsedPct` / `apySource` | Current APY, 7d fallback, or an observed non-positive/no-APY value. |
 | `opportunityYield` / `opportunityScore` / `opportunityGrade` | Risk-adjusted yield, normalized 0-100 score, and compatibility band. |
 | `penaltyBreakdown` | Factor-level raw and applied penalties with explanations. |
 | `inputHash` | Hash of the scoring inputs. |
@@ -90,7 +90,7 @@ Opportunity bands are based on net yield percent:
 2. `apy7dPct` when current APY is null or zero and 7d APY is positive.
 3. The available non-positive value, or null, with `apySource: "none"`.
 
-This prevents transient zero current APY from automatically collapsing the Opportunity grade when a 7d value is available.
+This prevents transient zero current APY from automatically collapsing the Opportunity grade when a 7d value is available. If current and 7d APY are both observed as zero, Opportunity is computed as zero-yield rather than marked low-confidence. If both APY observations are missing, Opportunity is low-confidence.
 
 ## Three-Layer Safety
 
@@ -132,7 +132,7 @@ The scorer currently considers:
 | Utilization | Saturating curve. Junior feels pressure earlier and harder. |
 | Tranche TVL | Missing or low TVL adds liquidity friction. |
 | Drawdown | Observed drawdown adds loss-risk pressure. |
-| Venue tier | Coarse placeholder with low weight until better venue data exists. |
+| Venue tier | Reviewed chain/venue classification where available; unknown venues remain low-confidence. |
 | Access restriction | Adds access-friction points when restricted or KYC-dependent. |
 | Withdrawal dependency | Adds liquidity-friction points when exit depends on underlying mechanics. |
 | Junior redemption delay | Junior-only liquidity-friction term. |
@@ -161,7 +161,7 @@ Each row also has a severity:
 | Status | Rule |
 | --- | --- |
 | `computed` | Required Pharos vault input exists and no non-fatal missing-data uncertainty was triggered. |
-| `low_confidence` | Required Pharos vault score exists, but non-fatal Royco fields are missing or uncertain. This includes missing status, coverage, utilization, tranche TVL, drawdown data, unknown venue tier, or no positive current/7d APY. |
+| `low_confidence` | Required Pharos vault score exists, but non-fatal Royco fields are missing or uncertain. This includes missing status, coverage, utilization, tranche TVL, drawdown data, unknown venue tier, unknown exposure profile, or missing current and 7d APY observations. |
 | `stale` | The input explicitly marks the score stale. |
 | `nr` | Underlying Pharos Safety Score is missing, or tranche side is invalid. |
 

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { EXPOSURE_HAIRCUT_CAP, exposureRiskFor } from "./exposure";
 import type { ApySource, GradeBand, MarketStatus, PenaltyBreakdownRow, ScoreInput, ScoreResult, TrancheSide } from "./types";
 
-// Royco Opportunity v0.6 — three-layer risk model.
+// Royco Opportunity v0.7 — three-layer risk model.
 //
 // The Pharos vault/base-asset score is Layer 1 and is shown verbatim. RoycoPharos adds:
 //   Layer 2 exposure score  = curated strategy/protocol risk, with a bounded exposure haircut
@@ -14,7 +14,7 @@ import type { ApySource, GradeBand, MarketStatus, PenaltyBreakdownRow, ScoreInpu
 // Seniors can score above the vault when the Junior buffer is thick; Juniors carry first-loss risk.
 // Exposure and structure haircuts are bounded separately and combined with diminishing returns.
 
-export const METHODOLOGY_VERSION = "royco-opportunity-v0.6";
+export const METHODOLOGY_VERSION = "royco-opportunity-v0.7";
 
 type SidePair = readonly [senior: number, junior: number];
 
@@ -525,7 +525,8 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
   }
 
   const apy = resolveApyPct(input.apyCurrentPct, input.apy7dPct);
-  if (apy.source === "none") {
+  const apyMissing = input.apyCurrentPct == null && input.apy7dPct == null;
+  if (apyMissing) {
     lowConfidence = true;
     rows.push(
       row({
@@ -533,13 +534,13 @@ export function scoreTranche(input: ScoreInput, now = Math.floor(Date.now() / 10
         label: "APY availability",
         riskCategory: "data-confidence",
         sourceField: "apy_current_pct",
-        value: apy.value,
-        threshold: "positive current or 7d APY",
+        value: null,
+        threshold: "current or 7d APY observation",
         direction: "missing",
         rawPenalty: 0,
         missing: true,
         observedAt: input.observedAt,
-        explanation: "No positive current or 7d APY is available, so Opportunity is low-confidence.",
+        explanation: "Current and 7d APY are both missing, so Opportunity is low-confidence.",
       }),
     );
   }

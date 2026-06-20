@@ -5,6 +5,13 @@ import type { MarketStatus, RoycoMarketFixture, RoycoTrancheFixture, TrancheSide
 
 const ROYCO_DAWN_EXPLORE_URL = "https://dawn.royco.org/api/v1/market/explore";
 const ROYCO_DAWN_PAGE_SIZE = 100;
+const VENUE_TIER_BY_CHAIN_ID: Record<number, VenueTier> = {
+  1: "medium",
+  10: "medium",
+  42161: "medium",
+  43114: "medium",
+  8453: "medium",
+};
 
 type RoycoToken = {
   symbol?: string | null;
@@ -275,9 +282,7 @@ function chainSlugForId(chainId: number) {
 }
 
 function venueTierForChain(chainId: number): VenueTier {
-  if (chainId === 1) return "medium";
-  if (chainId === 43114 || chainId === 42161 || chainId === 8453 || chainId === 10) return "unknown";
-  return "unknown";
+  return VENUE_TIER_BY_CHAIN_ID[chainId] ?? "unknown";
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

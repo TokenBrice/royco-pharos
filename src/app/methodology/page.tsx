@@ -274,9 +274,10 @@ export default async function MethodologyPage() {
         <SectionHead n={7} id="limitations" title="Missing data, freshness, and limitations" />
         <div className={styles.prose}>
           <p>
-            Missing market status, coverage, utilization, or tranche TVL adds an uncertainty term and sets the row to low
-            confidence. Missing Pharos vault Safety Score, or an invalid tranche side, produces NR rather than a
-            silent F.
+            Missing market status, coverage, utilization, tranche TVL, APY observations, or reviewed venue/exposure data
+            adds an uncertainty term and sets the row to low confidence. Observed zero APY is computed as zero-yield,
+            not treated as missing. Missing Pharos vault Safety Score, or an invalid tranche side, produces NR rather
+            than a silent F.
           </p>
           <p>{methodology.disclaimer}</p>
         </div>

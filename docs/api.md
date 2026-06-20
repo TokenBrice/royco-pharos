@@ -238,7 +238,7 @@ Response shape:
 ```json
 {
   "data": {
-    "version": "royco-opportunity-v0.6",
+    "version": "royco-opportunity-v0.7",
     "safetyScoreName": "Royco Safety Score",
     "opportunityScoreName": "Royco Opportunity Score",
     "safetyFormula": "clamp(round(pharosBaseScore - exposureHaircut + seniorCushionCredit - trancheStructureHaircut), 0, 100)",

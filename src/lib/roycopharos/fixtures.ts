@@ -1808,7 +1808,7 @@ export const ROYCO_MARKET_FIXTURES: RoycoMarketFixture[] = [
       shareTokenSymbol: "jrRoySTCUSD",
     }),
   ]),
-  market("1", "ethereum", "0x36c1d7cafa9a220fc1450fa070277aed69f8c9b2", "Ember eEarn", "normal", 1_018_422, 0.10973, 0.1, 0.91133, 0.9, 0, 0, "unknown", [
+  market("1", "ethereum", "0x36c1d7cafa9a220fc1450fa070277aed69f8c9b2", "Ember eEarn", "normal", 1_018_422, 0.10973, 0.1, 0.91133, 0.9, 0, 0, "medium", [
     tranche("senior", "eEARN", "eearn-ember", 0, 0.07404, 906_671, {
       decimals: 6,
       depositTokenAddress: "0x9be9294722f8aad37b11a9792be2c782182cafa2",
@@ -1820,7 +1820,7 @@ export const ROYCO_MARKET_FIXTURES: RoycoMarketFixture[] = [
       shareTokenSymbol: "jrRoyEEARN",
     }),
   ]),
-  market("42161", "arbitrum", "0xfdb17e53ea5d342124b8473188bcb9f05f1949ca", "Staked USDai", "normal", 634_446, 0.07968, 0.07, 0.87849, 0.9, 0, 0, "unknown", [
+  market("42161", "arbitrum", "0xfdb17e53ea5d342124b8473188bcb9f05f1949ca", "Staked USDai", "normal", 634_446, 0.07968, 0.07, 0.87849, 0.9, 0, 0, "medium", [
     tranche("senior", "sUSDai", "susdai-usd-ai", 0.0248, 0.02586, 583_893, {
       depositTokenAddress: "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
       shareTokenSymbol: "srRoySUSDAI",

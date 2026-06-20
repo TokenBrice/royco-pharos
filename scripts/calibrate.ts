@@ -79,7 +79,7 @@ for (const t of rows) {
       topDrivers(t),
   );
 }
-console.log("  (* = APY fell back to 7d, ! = no positive APY)\n");
+console.log("  (* = APY fell back to 7d, ! = no positive APY used)\n");
 
 const GRADES = ["A", "B", "C", "D", "E", "F", "NR"];
 function gradeCounts(grades: (string | null)[]) {

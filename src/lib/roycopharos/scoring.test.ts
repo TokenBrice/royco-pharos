@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSnapshot, safetyGradeFromScore, scoreTranche } from ".";
 
-describe("RoycoPharos scoring (v0.6)", () => {
+describe("RoycoPharos scoring (v0.7)", () => {
   it("computes a strong Senior to an A-band Safety score without a first-loss term", () => {
     const snapshot = buildSnapshot(1_770_000_000);
     // syrupUSDC: solid base plus a thick Junior buffer -> the strongest Senior in the book.
@@ -132,12 +132,31 @@ describe("RoycoPharos scoring (v0.6)", () => {
     expect(result.penaltyBreakdown.find((row) => row.key === "venue-tier")?.missing).toBe(true);
   });
 
-  it("marks missing positive APY as low-confidence without changing Safety to NR", () => {
-    const result = scoreTranche(baseInput({ apyCurrentPct: 0, apy7dPct: 0 }));
+  it("marks missing APY observations as low-confidence without changing Safety to NR", () => {
+    const result = scoreTranche(baseInput({ apyCurrentPct: null, apy7dPct: null }));
     expect(result.scoreStatus).toBe("low_confidence");
     expect(result.safetyScore).toEqual(expect.any(Number));
     expect(result.apySource).toBe("none");
     expect(result.penaltyBreakdown.find((row) => row.key === "apy-availability")?.missing).toBe(true);
+  });
+
+  it("treats observed zero APY as a computed zero-yield Opportunity result", () => {
+    const result = scoreTranche(baseInput({ apyCurrentPct: 0, apy7dPct: 0 }));
+    expect(result.scoreStatus).toBe("computed");
+    expect(result.apySource).toBe("none");
+    expect(result.apyUsedPct).toBe(0);
+    expect(result.opportunityYield).toBe(0);
+    expect(result.opportunityScore).toBe(0);
+    expect(result.opportunityGrade).toBe("F");
+    expect(result.penaltyBreakdown.find((row) => row.key === "apy-availability")).toBeUndefined();
+  });
+
+  it("uses the curated Smokehouse exposure profile", () => {
+    const result = scoreTranche(baseInput({ pharosStablecoinId: "bbqusdc-steakhouse" }));
+    const exposure = result.penaltyBreakdown.find((row) => row.key === "exposure-profile");
+    expect(result.scoreStatus).toBe("computed");
+    expect(exposure?.missing).toBe(false);
+    expect(exposure?.value).toBe("Curated Morpho lending vault");
   });
 
   it("falls back to 7d APY when current APY is zero", () => {

@@ -107,6 +107,15 @@ export const EXPOSURE_BY_PHAROS_ID: Record<string, ExposureProfile> = {
     riskScore: 49,
     riskRationale: "Recognizable manager and fund reporting help, but private-credit liquidity and centralized administration keep exposure risk elevated.",
   },
+  "bbqusdc-steakhouse": {
+    strategyClass: "Curated Morpho lending vault",
+    yieldSource: "Allocator-managed USDC lending markets on Morpho",
+    primaryRisk: "Borrower-market selection, allocator controls, and thin secondary liquidity",
+    liquidityProfile: "Vault redemption (underlying-dependent)",
+    pegBehavior: "accruing",
+    riskScore: 57,
+    riskRationale: "On-chain lending mechanics are legible, but allocator discretion, market selection, and limited secondary liquidity stay on watch.",
+  },
   "savusd-avant": {
     strategyClass: "Concentrated yield wrapper",
     yieldSource: "Single concentrated yield strategy",
