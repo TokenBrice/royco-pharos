@@ -1,4 +1,55 @@
-.dewsPill {
+/* ---------- peg stability (DEWS replacement) ---------- */
+.peg {
+  display: grid;
+  gap: 6px;
+}
+
+.peg[data-alarm] {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in oklch, var(--bad) 40%, var(--hairline));
+  border-radius: var(--r-sm);
+  background: var(--bad-wash);
+}
+
+.pegHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pegLabel {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pegScore {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pegScore .num {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.pegFacts {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.pegNote {
+  color: var(--muted);
+}
+
+/* compact peg pill for the ledger + masthead */
+.pegPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -14,7 +65,7 @@
   line-height: 1;
 }
 
-.dewsPill::before {
+.pegPill::before {
   content: "";
   width: 7px;
   height: 7px;
@@ -22,45 +73,186 @@
   background: var(--muted);
 }
 
-.dewsPill[data-tone="good"] {
+.pegPill[data-tone="good"] {
   border-color: color-mix(in oklch, var(--good) 36%, var(--hairline));
   color: var(--good-ink);
 }
-
-.dewsPill[data-tone="good"]::before {
+.pegPill[data-tone="good"]::before {
   background: var(--good);
 }
-
-.dewsPill[data-tone="watch"] {
+.pegPill[data-tone="watch"] {
   border-color: color-mix(in oklch, var(--warn) 42%, var(--hairline));
   color: var(--warn-ink);
 }
-
-.dewsPill[data-tone="watch"]::before {
+.pegPill[data-tone="watch"]::before {
   background: var(--warn);
 }
-
-.dewsPill[data-tone="bad"] {
+.pegPill[data-tone="bad"] {
   border-color: color-mix(in oklch, var(--bad) 38%, var(--hairline));
   color: var(--bad-ink);
 }
-
-.dewsPill[data-tone="bad"]::before {
+.pegPill[data-tone="bad"]::before {
   background: var(--bad);
 }
 
-.dewsScore {
-  font-family: var(--font-mono), ui-monospace, monospace;
+.pegAlarm {
+  margin-left: 2px;
+  padding: 1px 5px;
+  border-radius: var(--r-sm);
+  background: var(--bad);
+  color: var(--bad-on, #fff);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ---------- Pharos dimension bars ---------- */
+.dimensionList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dimensionRow {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.dimensionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dimensionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dimensionScore {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dimensionScore .num {
+  font-size: 13px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.dewsNote {
-  margin: 7px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
+.dimensionTrack {
+  position: relative;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  overflow: hidden;
 }
 
+.dimensionFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+}
+
+.dimensionDetail {
+  margin-top: 1px;
+}
+
+.dimensionSummary {
+  width: fit-content;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.dimensionSummary:hover,
+.dimensionSummary:focus-visible {
+  color: var(--brand-ink);
+}
+
+.dimensionDetailText {
+  margin: 6px 0 4px;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.dimensionItems {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dimensionItems li {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.itemLabel {
+  color: var(--muted);
+}
+
+.itemValue {
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ---------- Pharos source badge ---------- */
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sourceDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--good);
+}
+
+.sourceBadge[data-degraded] {
+  color: var(--warn-ink);
+}
+
+.sourceBadge[data-degraded] .sourceDot {
+  background: var(--warn);
+}
+
+.sourceFlag {
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in oklch, var(--warn) 42%, var(--hairline));
+  background: var(--warn-wash);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.sourceAge {
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- upstream dependencies ---------- */
 .dependencyList {
   display: grid;
   gap: 8px;

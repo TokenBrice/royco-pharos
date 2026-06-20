@@ -69,6 +69,10 @@ export function PenaltyBar({
   // (colored by its grade), then each tranche-level deduction, then empty headroom.
   const totalApplied = applied.reduce((sum, row) => sum + row.appliedPenalty, 0);
   const anchorScore = Math.max(0, Math.min(100, Math.round(finalScore + totalApplied)));
+  // The anchor sits above the Pharos vault score only via the Senior cushion credit — the one
+  // sanctioned path for a Senior seat to exceed the whole-vault score. Surface it explicitly so
+  // the base -> anchor jump is never unexplained.
+  const cushionCredit = anchorScore - baseScore;
   const pctOf = (points: number) => Math.max(0, Math.min(100, points));
   const finalIdx = gradeIndex(finalGrade);
   const keptColor = finalIdx != null ? `var(--grade-${GRADE_LETTERS[finalIdx].toLowerCase()})` : "var(--grade-nr)";
@@ -76,7 +80,9 @@ export function PenaltyBar({
   // categories actually present, in canonical order, for the legend
   const presentCategories = CATEGORY_ORDER.filter((cat) => applied.some((row) => row.riskCategory === cat));
 
-  const ariaLabel = `Why this grade. Pharos vault score ${baseScore}, tranche anchor ${anchorScore}, reduced by ${totalApplied.toFixed(
+  const ariaLabel = `Why this grade. Pharos vault score ${baseScore}${
+    cushionCredit > 0 ? `, plus ${cushionCredit} Senior cushion credit` : ""
+  }, tranche anchor ${anchorScore}, reduced by ${totalApplied.toFixed(
     1,
   )} points across ${applied.length} factor${applied.length === 1 ? "" : "s"}, down to a final Safety score of ${finalScore}, grade ${finalGrade ?? "NR"}.`;
 
@@ -88,6 +94,7 @@ export function PenaltyBar({
           <span className={styles.num}>{baseScore}</span>
           <GradeBadge grade={baseGrade} size="sm" />
         </span>
+        {cushionCredit > 0 ? <span className={styles.cushion}>+{cushionCredit} Senior cushion</span> : null}
         <span className={styles.baseline}>
           <span className={styles.baseLabel}>Tranche anchor</span>
           <span className={styles.num}>{anchorScore}</span>

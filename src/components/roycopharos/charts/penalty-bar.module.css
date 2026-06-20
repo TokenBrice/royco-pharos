@@ -49,6 +49,18 @@
   font-weight: 600;
 }
 
+/* Senior cushion credit — the positive step that lifts the anchor above the Pharos score. */
+.cushion {
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in oklch, var(--good) 38%, var(--hairline));
+  background: var(--good-wash);
+  color: var(--good-ink);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 /* the deduction bar */
 .bar {
   display: flex;
