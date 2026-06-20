@@ -96,6 +96,7 @@ In production D1 syncs (`ENVIRONMENT=production`), fixture-derived Royco or Phar
 
 - Keep all 18 direct Royco Dawn tranches visible whenever a complete candidate is available.
 - Show Pharos grades and scores verbatim as vault/base-asset inputs.
+- Surface Pharos DEWS and named upstream dependencies as evidence when reported; do not silently infer them when absent.
 - Keep Pharos vault ratings distinct from RoycoPharos tranche Safety and Opportunity grades.
 - Allow Senior Safety to exceed the whole-vault Pharos score only through explicit buffer-depth credit.
 - Missing underlying Pharos Safety Score means `NR`, not a silent low grade.

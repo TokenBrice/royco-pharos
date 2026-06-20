@@ -133,6 +133,16 @@ Cache header: `Cache-Control: s-maxage=60, stale-while-revalidate=240`
 
 The market shape is `RoycoMarketView`.
 
+Each market includes `underlyings: UnderlyingSummary[]`. `UnderlyingSummary` carries the Pharos base-asset read used by
+the scorer:
+
+| Field | Meaning |
+| --- | --- |
+| `underlyingSafetyScore` / `underlyingSafetyGrade` | Pharos Safety Score and grade, shown verbatim. |
+| `dews` | Pharos DEWS signal when reported, including status, stress score, summary, and timestamps. |
+| `upstreamDependencies` | Named upstream dependencies reported by Pharos, including weight, Pharos score/grade, and link when available. |
+| `pharosUrl` | Link to the Pharos stablecoin dossier for the base asset. |
+
 Example:
 
 ```bash
