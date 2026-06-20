@@ -177,10 +177,13 @@ export function OpportunityScatter({
                   key={p.t.trancheId}
                   className="oscatter__pt"
                   href={`/markets/${encodeURIComponent(p.t.marketKey)}`}
-                  // Keep the plot from becoming dozens of tab stops; the full data is in the
-                  // table fallback, while highlighted decision points remain keyboard-reachable.
-                  tabIndex={p.isStar || p.isHighlighted ? 0 : -1}
-                  aria-label={p.isStar ? `Largest Opportunity/Safety gap: ${conciseLabel} View market.` : conciseLabel}
+                  aria-label={
+                    p.isStar
+                      ? `Largest Opportunity/Safety gap: ${conciseLabel} View market.`
+                      : p.isHighlighted
+                        ? `Highlighted decision point: ${conciseLabel} View market.`
+                        : `${conciseLabel} View market.`
+                  }
                   data-grade={letter}
                   data-seat={p.t.side}
                   data-star={p.isStar ? "" : undefined}
@@ -274,7 +277,9 @@ export function OpportunityScatter({
           <tbody>
             {visiblePts.map(({ t }) => (
               <tr key={t.trancheId}>
-                <td>{t.marketName}</td>
+                <td>
+                  <a href={`/markets/${encodeURIComponent(t.marketKey)}`}>{t.marketName}</a>
+                </td>
                 <td>{t.side}</td>
                 <td>{t.safetyScore ?? "NR"}</td>
                 <td>{t.opportunityScore ?? "NR"}</td>

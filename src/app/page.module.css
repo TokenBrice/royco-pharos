@@ -76,98 +76,6 @@
   color: var(--ink-soft);
 }
 
-/* compact trust verdict: one read before the user compares rows */
-.snapshotRead {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--snapshot-line, var(--hairline));
-  border-radius: var(--r-md);
-  background: var(--snapshot-wash, var(--surface-1));
-}
-
-.snapshotRead[data-tone="good"] {
-  --snapshot-line: color-mix(in oklch, var(--good) 32%, var(--hairline));
-  --snapshot-wash: color-mix(in oklch, var(--good) 6%, var(--surface-1));
-}
-
-.snapshotRead[data-tone="watch"] {
-  --snapshot-line: color-mix(in oklch, var(--warn) 36%, var(--hairline));
-  --snapshot-wash: color-mix(in oklch, var(--warn) 8%, var(--surface-1));
-}
-
-.snapshotRead[data-tone="bad"] {
-  --snapshot-line: color-mix(in oklch, var(--bad) 32%, var(--hairline));
-  --snapshot-wash: color-mix(in oklch, var(--bad) 6%, var(--surface-1));
-}
-
-.snapshotVerdict {
-  display: grid;
-  gap: 5px;
-}
-
-.snapshotVerdict span {
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.snapshotVerdict p {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.snapshotFacts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-sm);
-  background: var(--hairline);
-}
-
-.snapshotFacts span {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  padding: 10px;
-  background: var(--surface-1);
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.snapshotFacts b {
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.snapshotFacts span[data-flag="watch"] b {
-  color: var(--warn-ink);
-}
-
-.snapshotFacts span[data-flag="bad"] b {
-  color: var(--bad-ink);
-}
-
-.snapshotLink {
-  justify-self: start;
-  color: var(--brand-ink);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.snapshotLink:hover,
-.snapshotLink:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* two complementary lead cards: safest seat + largest grade gap */
 .signals {
   display: grid;
@@ -365,10 +273,6 @@
 }
 
 @media (max-width: 640px) {
-  .snapshotFacts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .scatterPanel :global(.oscatter) {
     --plot-h: 300px;
   }
@@ -410,11 +314,5 @@
   .mobileDivergences span:last-child {
     color: var(--muted);
     font-size: 12px;
-  }
-}
-
-@media (max-width: 360px) {
-  .snapshotFacts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

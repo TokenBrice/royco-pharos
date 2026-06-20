@@ -1,9 +1,8 @@
 /* ============================================================
    Dual-line vault ledger — local module for overview-table.tsx
-   A CSS-grid ledger (not a <table>) so the summary + two indented
-   tranche sublines and the left grade heat-spine align cleanly.
-   role="table"/row/cell + a header row keep it accessible; the
-   wrapper scrolls horizontally on narrow widths.
+   Native table markup with market row groups: each group starts with
+   a summary header row, then the per-seat tranche evidence rows.
+   The wrapper scrolls horizontally on narrow widths.
    ============================================================ */
 
 /* ---- controls ---- */
@@ -127,29 +126,30 @@
   font-size: 12.5px;
 }
 
-/* The shared column track — header, summary and subline rows all
-   reference it so every cell stays aligned across the spine. Col 1
-   is the Safety heat-spine, col 2 the market/tranche name. */
 .ledger {
-  --cols:
-    minmax(280px, 2fr)  /* asset + seat ring + tranche identity */
-    minmax(120px, 0.9fr) /* APY                     */
-    minmax(110px, 0.8fr) /* coverage headroom       */
-    minmax(110px, 0.8fr) /* utilization             */
-    minmax(140px, 0.9fr) /* divergence              */;
+  width: 100%;
   min-width: 880px;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.headRow,
-.subRow {
-  display: grid;
-  grid-template-columns: var(--cols);
-  align-items: center;
-  column-gap: 14px;
+.assetColumn { width: 38%; }
+.apyColumn { width: 15%; }
+.coverageColumn { width: 15%; }
+.utilizationColumn { width: 15%; }
+.scoreColumn { width: 17%; }
+
+.ledger th,
+.ledger td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ledger th {
+  font-weight: inherit;
 }
 
 .headRow {
-  padding: 10px 16px;
   border-bottom: 1px solid var(--hairline-strong);
   background: var(--surface-2);
   color: var(--muted);
@@ -159,7 +159,18 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.headRow .num { text-align: left; }
+
+.headRow th {
+  padding: 10px 7px;
+}
+
+.headRow th:first-child {
+  padding-left: 16px;
+}
+
+.headRow th:last-child {
+  padding-right: 16px;
+}
 
 /* ---- vault group ---- */
 .group {
@@ -173,10 +184,14 @@
    figure is repeated across the two. Left = case identity, right = a vitals
    strip joined by 1px seams, led by the foundational Pharos base-asset read. */
 .summaryRow {
-  padding: 10px 16px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--hairline);
 }
+
+.summaryRow th {
+  padding: 10px 16px;
+}
+
 .summaryInner {
   display: flex;
   align-items: center;
@@ -274,14 +289,33 @@
 
 /* ---- tranche subline ---- */
 .subRow {
-  padding: 11px 16px;
   background: var(--surface-1);
 }
+
+.subRow th,
+.subRow td {
+  padding: 11px 7px;
+}
+
+.subRow th:first-child,
+.subRow td:first-child {
+  padding-left: 16px;
+}
+
+.subRow th:last-child,
+.subRow td:last-child {
+  padding-right: 16px;
+}
+
 .subRow + .subRow { border-top: 1px solid var(--hairline); }
 
 /* Consolidated identity cell: tree glyph + asset logo inside a Safety-grade seat ring
    (same language as the scatter markers) + the base asset, exposure type, and tranche seat. */
 .identityCell {
+  min-width: 0;
+}
+
+.identityCellInner {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -602,6 +636,29 @@
   .mobileBook {
     display: grid;
     gap: 12px;
+  }
+}
+
+@media (pointer: coarse) {
+  .segmented button,
+  .focusFilters button,
+  .searchField input {
+    min-height: 44px;
+  }
+
+  .segmented button {
+    padding: 10px 14px;
+  }
+
+  .focusFilters button {
+    padding: 9px 14px;
+  }
+
+  .marketName,
+  .mobileMarketTitle a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
 

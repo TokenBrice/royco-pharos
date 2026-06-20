@@ -793,6 +793,23 @@ button, input, select { font: inherit; }
   .oscatter__toolbar { align-items: flex-start; flex-direction: column; }
   .oscatter__pt[data-muted] { opacity: 0.36; }
 }
+@media (pointer: coarse) {
+  .oscatter__segmented button {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  .oscatter__pt {
+    width: max(44px, var(--d));
+    height: max(44px, var(--d));
+  }
+
+  .oscatter__ring {
+    inset: auto;
+    width: var(--d);
+    height: var(--d);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .oscatter__pt { transition: none; }
   .oscatter__pt:hover, .oscatter__pt:focus-visible { transform: translate(-50%, -50%); }

@@ -1,5 +1,6 @@
 import { titleCase } from "./format";
 import { GradeBadge, type GradeSize } from "./grade";
+import { badgeClassForState } from "@/lib/roycopharos/snapshot-health";
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {
   const normalized = status ?? "unknown";
@@ -29,15 +30,6 @@ export function ScoreBadge({
 
 export function DataBadge({ value }: { value: string | null | undefined }) {
   const normalized = value ?? "unknown";
-  const className =
-    normalized === "mapped" || normalized === "computed"
-      ? "badge good"
-      : normalized === "low_confidence" || normalized === "stale" || normalized === "conflict"
-        ? "badge watch"
-        : normalized === "nr" || normalized === "unmapped"
-          ? "badge nr"
-          : "badge neutral";
-
   const label = normalized === "nr" ? "NR" : titleCase(normalized);
-  return <span className={className}>{label}</span>;
+  return <span className={badgeClassForState(normalized)}>{label}</span>;
 }

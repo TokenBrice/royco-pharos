@@ -24,6 +24,8 @@ export function RelativeTime({ time, now }: { time: number | null | undefined; n
 
   useEffect(() => {
     if (time == null) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
     const tick = () => setCurrent(Math.floor(Date.now() / 1000));
     tick();
     const id = setInterval(tick, 1000);

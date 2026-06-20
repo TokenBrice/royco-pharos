@@ -5,8 +5,9 @@ import { OpportunityScatter } from "@/components/roycopharos/opportunity-scatter
 import { AssetLogo } from "@/components/roycopharos/asset-logo";
 import { ScorePair } from "@/components/roycopharos/grade";
 import { formatAge, formatPct, titleCase } from "@/components/roycopharos/format";
-import { getRoycoPharosSnapshot } from "@/lib/roycopharos/repository";
+import { getRoycoPharosSnapshotOrNull } from "@/lib/roycopharos/repository";
 import { buildChangeFeed } from "@/lib/roycopharos/snapshot";
+import { deriveSnapshotHealth } from "@/lib/roycopharos/snapshot-health";
 import type { RoycoTrancheView } from "@/lib/roycopharos/types";
 import styles from "./page.module.css";
 
@@ -85,9 +86,9 @@ function SignalCard({ kicker, tranche, reason }: { kicker: string; tranche: Royc
 }
 
 export default async function HomePage() {
-  const snapshot = await getRoycoPharosSnapshot();
+  const snapshot = await getRoycoPharosSnapshotOrNull();
 
-  if (snapshot.tranches.length === 0) {
+  if (!snapshot || snapshot.tranches.length === 0) {
     return (
       <main className={`page-shell ${styles.homeShell}`}>
         <section className={styles.emptyState}>
@@ -103,12 +104,8 @@ export default async function HomePage() {
 
   const trancheCount = snapshot.tranches.length;
   const marketCount = snapshot.markets.length;
-  const ratedCount = snapshot.tranches.filter((t) => t.safetyScore != null).length;
-  const nrCount = snapshot.tranches.filter((t) => t.scoreStatus === "nr" || t.safetyScore == null).length;
-  const lowConfidenceCount = snapshot.tranches.filter((t) => t.scoreStatus === "low_confidence").length;
-  const staleScoreCount = snapshot.tranches.filter((t) => t.scoreStatus === "stale").length;
-  const unmappedCount = snapshot.tranches.filter((t) => t.mappingStatus === "unmapped").length;
-  const conflictCount = snapshot.tranches.filter((t) => t.mappingStatus === "conflict").length;
+  const health = deriveSnapshotHealth(snapshot);
+  const ratedCount = trancheCount - health.nrCount;
 
   // Two complementary leads, safety-first: the protected seat a cautious depositor should
   // start from, then the largest Opportunity/Safety gap for those comparing yield to cushion.
@@ -130,28 +127,8 @@ export default async function HomePage() {
   const pharos = snapshot.meta.pharos;
   const score = snapshot.meta.score;
   const bothFresh = royco.status === "fresh" && pharos.status === "fresh";
-  const allFresh = bothFresh && score.status === "fresh";
   const eitherFresh = royco.status === "fresh" || pharos.status === "fresh" || score.status === "fresh";
   const freshnessWord = bothFresh ? "fresh" : eitherFresh ? "partly aging" : "aging";
-  const feedAges = [royco.ageSeconds, pharos.ageSeconds, score.ageSeconds].filter(
-    (age): age is number => age != null && Number.isFinite(age),
-  );
-  const oldestFeedAge = feedAges.length > 0 ? Math.max(...feedAges) : null;
-  const snapshotFlagCount = nrCount + lowConfidenceCount + staleScoreCount + unmappedCount + conflictCount;
-  const hasHardSnapshotFlags = conflictCount > 0 || staleScoreCount > 0 || nrCount > 0;
-  const snapshotTone = hasHardSnapshotFlags ? "bad" : !allFresh || snapshotFlagCount > 0 ? "watch" : "good";
-  const snapshotTitle =
-    snapshotTone === "good"
-      ? "Snapshot is current and fully scored"
-      : snapshotTone === "watch"
-        ? "Snapshot is usable with visible caveats"
-        : "Read this snapshot with caution";
-  const snapshotBody =
-    snapshotTone === "good"
-      ? "All listed tranches have computed RoycoPharos scores from fresh Royco and Pharos inputs."
-      : !allFresh && snapshotFlagCount === 0
-        ? "Scores are complete, but at least one input feed is aging. Check health before treating the ranking as current."
-        : "Use the flags below before comparing yield: missing ratings, stale scores, or mapping issues change how much confidence the table deserves.";
 
   return (
     <main className={`page-shell ${styles.homeShell}`}>
@@ -174,44 +151,6 @@ export default async function HomePage() {
               label={`Safety grade distribution across ${trancheCount} tranches`}
               showLegend
             />
-          </div>
-
-          <div className={styles.snapshotRead} data-tone={snapshotTone} aria-label="Snapshot read">
-            <div className={styles.snapshotVerdict}>
-              <span>{snapshotTitle}</span>
-              <p>{snapshotBody}</p>
-            </div>
-            <div className={styles.snapshotFacts}>
-              <span>
-                <b className="num">
-                  {ratedCount}/{trancheCount}
-                </b>
-                rated
-              </span>
-              <span data-flag={!allFresh ? "watch" : undefined}>
-                <b>{allFresh ? "Fresh" : "Aging"}</b>
-                feeds
-              </span>
-              <span data-flag={nrCount > 0 ? "bad" : undefined}>
-                <b className="num">{nrCount}</b>
-                NR
-              </span>
-              <span data-flag={lowConfidenceCount > 0 ? "watch" : undefined}>
-                <b className="num">{lowConfidenceCount}</b>
-                low confidence
-              </span>
-              <span data-flag={!allFresh ? "watch" : undefined}>
-                <b className="num">{formatAge(oldestFeedAge)}</b>
-                oldest feed
-              </span>
-              <span data-flag={unmappedCount + conflictCount > 0 ? "bad" : undefined}>
-                <b className="num">{unmappedCount + conflictCount}</b>
-                mapping issues
-              </span>
-            </div>
-            <Link className={styles.snapshotLink} href="/health">
-              Data health
-            </Link>
           </div>
 
           {safest ? (
