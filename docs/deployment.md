@@ -64,7 +64,7 @@ Set these repository or environment secrets:
 | --- | --- |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account target for Wrangler |
 | `CLOUDFLARE_API_TOKEN` | Deploy and D1 migration access |
-| `SYNC_ADMIN_TOKEN` | GitHub environment secret used by automatic production deploys, and by manual deploys when `trigger_sync` is enabled, to trigger the sync Worker before the health gate |
+| `SYNC_ADMIN_TOKEN` | GitHub environment secret used to trigger the sync Worker before the health gate. Automatic production deploys skip this trigger when it is absent. Manual deploys fail if `trigger_sync` is enabled and this secret is absent. |
 
 The Cloudflare API token needs permission to deploy Workers and apply D1 migrations for the account.
 
@@ -73,13 +73,15 @@ Set these GitHub environment variables for staging and production, or provide th
 | Variable | Purpose |
 | --- | --- |
 | `ROYCOPHAROS_HEALTH_URL` | Web host or full `/api/health` URL checked after deploy |
-| `ROYCOPHAROS_SYNC_URL` | Sync Worker URL used for automatic production deploys, and by manual deploys when `trigger_sync` is enabled, including `?mode=all` if desired |
+| `ROYCOPHAROS_SYNC_URL` | Sync Worker URL used to trigger the sync Worker before the health gate, including `?mode=all` if desired. Automatic production deploys skip this trigger when it is absent. Manual deploys fail if `trigger_sync` is enabled and this variable is absent. |
 
 ## Automatic Production Deploys
 
 Pushes to `main` run the `CI` workflow. When that workflow completes successfully for a `push` event on `main`, the `Deploy` workflow automatically deploys production.
 
-The automatic production path uses the production GitHub environment, runs the same validation steps as manual deploys, applies remote D1 migrations, deploys the web Worker and sync Worker, triggers the sync Worker, then runs the `/api/health` smoke gate. It also verifies that the CI run's commit still matches `origin/main` before deploying, so a slower stale CI run cannot redeploy an older commit over a newer push.
+The automatic production path uses the production GitHub environment, runs the same validation steps as manual deploys, applies remote D1 migrations, deploys the web Worker and sync Worker, attempts a post-deploy sync when `ROYCOPHAROS_SYNC_URL` and `SYNC_ADMIN_TOKEN` are configured, then runs the `/api/health` smoke gate. It also verifies that the CI run's commit still matches `origin/main` before deploying, so a slower stale CI run cannot redeploy an older commit over a newer push.
+
+If `ROYCOPHAROS_HEALTH_URL` is not configured for production, the workflow falls back to `https://royco.pharos.watch/api/health`.
 
 If the GitHub `production` environment has required reviewers configured, the automatic workflow will pause for that environment approval before deployment. Remove that protection if production should deploy without human approval after CI passes.
 

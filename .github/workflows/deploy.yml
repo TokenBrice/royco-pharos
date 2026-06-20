@@ -97,10 +97,18 @@ jobs:
       - name: Trigger initial sync
         if: ${{ (github.event_name == 'workflow_run' && steps.auto_guard.outputs.deploy == 'true') || (github.event_name == 'workflow_dispatch' && inputs.trigger_sync) }}
         env:
-          SYNC_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.sync_url || vars.ROYCOPHAROS_SYNC_URL }}
+          INPUT_SYNC_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.sync_url || '' }}
+          ENV_SYNC_URL: ${{ vars.ROYCOPHAROS_SYNC_URL }}
           SYNC_ADMIN_TOKEN: ${{ secrets.SYNC_ADMIN_TOKEN }}
         run: |
-          if [ -z "$SYNC_URL" ]; then
+          sync_url="${INPUT_SYNC_URL:-$ENV_SYNC_URL}"
+          if [ -z "$sync_url" ] || [ -z "$SYNC_ADMIN_TOKEN" ]; then
+            if [ "${{ github.event_name }}" = "workflow_run" ]; then
+              echo "Skipping automatic post-deploy sync because ROYCOPHAROS_SYNC_URL or SYNC_ADMIN_TOKEN is not configured."
+              exit 0
+            fi
+          fi
+          if [ -z "$sync_url" ]; then
             echo "ROYCOPHAROS_SYNC_URL or sync_url input is required when trigger_sync is true." >&2
             exit 1
           fi
@@ -110,10 +118,20 @@ jobs:
           fi
           curl -fsS -X POST \
             -H "Authorization: Bearer ${SYNC_ADMIN_TOKEN}" \
-            "${SYNC_URL}"
+            "${sync_url}"
 
       - name: Verify deployed health
         if: ${{ github.event_name == 'workflow_dispatch' || steps.auto_guard.outputs.deploy == 'true' }}
         env:
-          ROYCOPHAROS_HEALTH_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.health_url || vars.ROYCOPHAROS_HEALTH_URL }}
-        run: npm run smoke:health
+          INPUT_HEALTH_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.health_url || '' }}
+          ENV_HEALTH_URL: ${{ vars.ROYCOPHAROS_HEALTH_URL }}
+        run: |
+          health_url="${INPUT_HEALTH_URL:-$ENV_HEALTH_URL}"
+          if [ -z "$health_url" ] && [ "$DEPLOY_ENV" = "production" ]; then
+            health_url="https://royco.pharos.watch/api/health"
+          fi
+          if [ -z "$health_url" ]; then
+            echo "ROYCOPHAROS_HEALTH_URL or health_url input is required for deploy health checks." >&2
+            exit 1
+          fi
+          npm run smoke:health -- "$health_url"
