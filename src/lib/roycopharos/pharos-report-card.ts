@@ -1,15 +1,41 @@
-import type { PharosDependency, PharosDewsSignal, UnderlyingSummary } from "./types";
+import type {
+  PharosBridgeRoute,
+  PharosDependency,
+  PharosDimension,
+  PharosDimensionItem,
+  PharosFreshnessFlags,
+  PharosPegHealth,
+  UnderlyingSummary,
+} from "./types";
 
 type JsonRecord = Record<string, unknown>;
 
 export interface PharosReportCardExtras {
+  overallBaseScore: number | null;
   summary: string;
-  dews: PharosDewsSignal | null;
+  peg: PharosPegHealth | null;
+  dimensions: PharosDimension[];
   upstreamDependencies: PharosDependency[];
+  variantKind: string | null;
+  variantParentId: string | null;
+  navToken: boolean | null;
+  bridgeRoute: PharosBridgeRoute | null;
+  freshness: PharosFreshnessFlags;
   pharosUrl: string | null;
 }
 
+/** Report-card-wide context so a dependency can resolve to its own Pharos grade and the
+ *  per-asset degradation flags (which live at the top level of /api/report-cards). */
+export interface ReportCardContext {
+  cardById?: Map<string, JsonRecord>;
+  fallbackIds?: Set<string>;
+  driftIds?: Set<string>;
+  stale?: boolean;
+}
+
 const PHAROS_STABLECOIN_BASE_URL = "https://pharos.watch/stablecoin";
+const DIMENSION_ORDER = ["pegStability", "liquidity", "resilience", "decentralization", "dependencyRisk"];
+const NO_FRESHNESS: PharosFreshnessFlags = { fallback: false, collateralDrift: false, stale: false };
 
 export function pharosStablecoinUrl(id: string | null | undefined) {
   return id ? `${PHAROS_STABLECOIN_BASE_URL}/${encodeURIComponent(id)}/` : null;
@@ -17,9 +43,16 @@ export function pharosStablecoinUrl(id: string | null | undefined) {
 
 export function serializeUnderlyingReportCard(underlying: UnderlyingSummary) {
   return JSON.stringify({
+    overallBaseScore: underlying.overallBaseScore,
     summary: underlying.summary,
-    dews: underlying.dews,
+    peg: underlying.peg,
+    dimensions: underlying.dimensions,
     upstreamDependencies: underlying.upstreamDependencies,
+    variantKind: underlying.variantKind,
+    variantParentId: underlying.variantParentId,
+    navToken: underlying.navToken,
+    bridgeRoute: underlying.bridgeRoute,
+    freshness: underlying.freshness,
     pharosUrl: underlying.pharosUrl,
   });
 }
@@ -28,9 +61,16 @@ export function reportCardExtrasFromJson(summaryJson: string | null | undefined,
   const parsed = parseJson(summaryJson);
   const record = isObject(parsed) ? parsed : null;
   return {
+    overallBaseScore: numberValue(record, "overallBaseScore"),
     summary: stringValue(record, "summary") ?? "Pharos summary unavailable.",
-    dews: normalizeDews(record?.dews ?? null),
+    peg: normalizePeg(record?.peg),
+    dimensions: normalizeDimensions(record?.dimensions),
     upstreamDependencies: normalizeDependencies(record?.upstreamDependencies),
+    variantKind: stringValue(record, "variantKind"),
+    variantParentId: stringValue(record, "variantParentId"),
+    navToken: boolValue(record, "navToken"),
+    bridgeRoute: normalizeBridge(record?.bridgeRoute),
+    freshness: normalizeFreshness(record?.freshness),
     pharosUrl: stringValue(record, "pharosUrl") ?? pharosStablecoinUrl(pharosStablecoinId),
   };
 }
@@ -38,270 +78,193 @@ export function reportCardExtrasFromJson(summaryJson: string | null | undefined,
 export function extractReportCardExtras({
   id,
   card,
-  coin,
   fixture,
+  context = {},
 }: {
   id: string;
   card: JsonRecord | null;
-  coin: JsonRecord | null;
   fixture: UnderlyingSummary | null;
+  context?: ReportCardContext;
 }): PharosReportCardExtras {
-  const dimensions = isObject(card?.dimensions) ? card.dimensions : null;
-  const dependencyRisk = isObject(dimensions?.dependencyRisk) ? dimensions.dependencyRisk : null;
+  const rawInputs = isObject(card?.rawInputs) ? (card.rawInputs as JsonRecord) : null;
+  const dimensions = extractDimensions(card);
+  const dependencies = extractDependencies(rawInputs, context.cardById);
   const summary =
-    stringValue(dependencyRisk, "detail") ??
-    stringValue(dependencyRisk, "summary") ??
-    stringValue(card, "summary") ??
-    stringValue(card, "detail") ??
+    dimensions.find((dim) => dim.key === "dependencyRisk")?.detail ??
+    dimensions.find((dim) => dim.key === "resilience")?.detail ??
     fixture?.summary ??
     "Live Pharos report card summary unavailable.";
 
   return {
+    overallBaseScore: numberValue(card, "baseScore") ?? fixture?.overallBaseScore ?? null,
     summary,
-    dews: extractDewsSignal(card, coin) ?? fixture?.dews ?? null,
-    upstreamDependencies: withFixtureDependencies(extractDependencies(card, coin), fixture),
+    peg: extractPeg(card) ?? fixture?.peg ?? null,
+    dimensions: dimensions.length > 0 ? dimensions : fixture?.dimensions ?? [],
+    upstreamDependencies: dependencies.length > 0 ? dependencies : fixture?.upstreamDependencies ?? [],
+    variantKind: stringValue(rawInputs, "variantKind") ?? fixture?.variantKind ?? null,
+    variantParentId: stringValue(rawInputs, "variantParentId") ?? fixture?.variantParentId ?? null,
+    navToken: boolValue(rawInputs, "navToken") ?? fixture?.navToken ?? null,
+    bridgeRoute: extractBridge(card) ?? fixture?.bridgeRoute ?? null,
+    freshness: {
+      fallback: context.fallbackIds?.has(id) ?? false,
+      collateralDrift: context.driftIds?.has(id) ?? false,
+      stale: context.stale ?? false,
+    },
     pharosUrl: stringValue(card, "url") ?? stringValue(card, "pharosUrl") ?? pharosStablecoinUrl(id),
   };
 }
 
-function withFixtureDependencies(dependencies: PharosDependency[], fixture: UnderlyingSummary | null) {
-  return dependencies.length > 0 ? dependencies.slice(0, 6) : fixture?.upstreamDependencies ?? [];
-}
-
-function extractDewsSignal(...sources: (JsonRecord | null)[]): PharosDewsSignal | null {
-  for (const source of sources) {
-    if (!source) continue;
-    const keyed = findDewsContainer(source);
-    if (keyed) {
-      const normalized = normalizeDews(keyed);
-      if (normalized) return normalized;
-    }
-
-    const directScore =
-      numberValue(source, "dewsStress") ??
-      numberValue(source, "dewsStressScore") ??
-      numberValue(source, "dewsScore") ??
-      numberValue(source, "depegEarlyWarningScore");
-    const directStatus =
-      stringValue(source, "dewsStatus") ??
-      stringValue(source, "dewsBand") ??
-      stringValue(source, "dewsState") ??
-      stringValue(source, "depegEarlyWarningStatus");
-    if (directScore != null || directStatus != null) {
-      return {
-        status: directStatus ?? statusFromDewsStress(directScore),
-        stressScore: directScore,
-        summary: stringValue(source, "dewsSummary") ?? stringValue(source, "dewsMessage") ?? null,
-        observedAt: timestampValue(source, "observedAt") ?? timestampValue(source, "asOf"),
-        updatedAt: timestampValue(source, "updatedAt"),
-      };
-    }
-  }
-  return null;
-}
-
-function findDewsContainer(source: JsonRecord): JsonRecord | number | string | null {
-  const queue: unknown[] = [source];
-  const seen = new Set<unknown>();
-  while (queue.length > 0) {
-    const value = queue.shift();
-    if (!isObject(value) || seen.has(value)) continue;
-    seen.add(value);
-    for (const [key, child] of Object.entries(value)) {
-      const normalizedKey = key.toLowerCase();
-      if (
-        normalizedKey === "dews" ||
-        normalizedKey.includes("dews") ||
-        normalizedKey.includes("depegearlywarning") ||
-        normalizedKey.includes("depegwarning")
-      ) {
-        if (isObject(child) || typeof child === "number" || typeof child === "string") return child;
-      }
-      if (isObject(child)) queue.push(child);
-      if (Array.isArray(child)) {
-        for (const item of child) if (isObject(item)) queue.push(item);
-      }
-    }
-  }
-  return null;
-}
-
-function normalizeDews(value: unknown): PharosDewsSignal | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
+function extractDimensions(card: JsonRecord | null): PharosDimension[] {
+  const dims = isObject(card?.dimensions) ? (card.dimensions as JsonRecord) : null;
+  if (!dims) return [];
+  const keys = [...new Set([...DIMENSION_ORDER, ...Object.keys(dims)])].filter((key) => isObject(dims[key]));
+  return keys.map((key) => {
+    const dim = dims[key] as JsonRecord;
     return {
-      status: statusFromDewsStress(value),
-      stressScore: value,
-      summary: null,
-      observedAt: null,
-      updatedAt: null,
-    };
-  }
-  if (typeof value === "string") {
-    return {
-      status: value,
-      stressScore: null,
-      summary: null,
-      observedAt: null,
-      updatedAt: null,
-    };
-  }
-  if (!isObject(value)) return null;
-  const stressScore =
-    numberValue(value, "stressScore") ??
-    numberValue(value, "score") ??
-    numberValue(value, "value") ??
-    numberValue(value, "dews") ??
-    numberValue(value, "dewsScore");
-  const status =
-    stringValue(value, "status") ??
-    stringValue(value, "state") ??
-    stringValue(value, "band") ??
-    stringValue(value, "severity") ??
-    stringValue(value, "level") ??
-    statusFromDewsStress(stressScore);
-  const summary =
-    stringValue(value, "summary") ??
-    stringValue(value, "message") ??
-    stringValue(value, "detail") ??
-    stringValue(value, "label") ??
-    null;
-  if (stressScore == null && summary == null && status === "not reported") return null;
+      key,
+      label: humanizeKey(key),
+      score: numberValue(dim, "score"),
+      grade: stringValue(dim, "grade"),
+      detail: stringValue(dim, "detail"),
+      items: extractDimensionItems(dim),
+    } satisfies PharosDimension;
+  });
+}
+
+function extractDimensionItems(dim: JsonRecord): PharosDimensionItem[] {
+  const items = Array.isArray(dim.detailItems) ? dim.detailItems : [];
+  return items.filter(isObject).map((item) => ({
+    label: stringValue(item, "label"),
+    value: stringValue(item, "value"),
+    detail: stringValue(item, "detail"),
+  }));
+}
+
+function extractPeg(card: JsonRecord | null): PharosPegHealth | null {
+  const rawInputs = isObject(card?.rawInputs) ? (card.rawInputs as JsonRecord) : null;
+  const dims = isObject(card?.dimensions) ? (card.dimensions as JsonRecord) : null;
+  const pegStability = dims && isObject(dims.pegStability) ? (dims.pegStability as JsonRecord) : null;
+  if (!rawInputs && !pegStability) return null;
+  const items = pegStability && Array.isArray(pegStability.detailItems) ? pegStability.detailItems : [];
+  const yieldBearing = items.some(
+    (item) => isObject(item) && /yield-bearing/i.test(`${stringValue(item, "value") ?? ""} ${stringValue(item, "detail") ?? ""}`),
+  );
   return {
-    status,
-    stressScore,
-    summary,
-    observedAt: timestampValue(value, "observedAt") ?? timestampValue(value, "asOf") ?? timestampValue(value, "timestamp"),
-    updatedAt: timestampValue(value, "updatedAt"),
+    score: numberValue(pegStability, "score") ?? numberValue(rawInputs, "pegScore"),
+    grade: stringValue(pegStability, "grade"),
+    activeDepeg: boolValue(rawInputs, "activeDepeg"),
+    activeDepegBps: numberValue(rawInputs, "activeDepegBps"),
+    depegEventCount: numberValue(rawInputs, "depegEventCount"),
+    lastEventAt: numberValue(rawInputs, "lastEventAt"),
+    yieldBearing,
   };
 }
 
-function statusFromDewsStress(score: number | null | undefined) {
-  if (score == null || !Number.isFinite(score)) return "not reported";
-  if (score >= 75) return "critical";
-  if (score >= 50) return "warning";
-  if (score >= 25) return "watch";
-  return "normal";
+function extractDependencies(rawInputs: JsonRecord | null, cardById?: Map<string, JsonRecord>): PharosDependency[] {
+  const list = rawInputs && Array.isArray(rawInputs.dependencies) ? rawInputs.dependencies : [];
+  return list
+    .filter(isObject)
+    .map((dep) => normalizeRawDependency(dep, cardById))
+    .filter((dep): dep is PharosDependency => dep != null);
 }
 
-function extractDependencies(...sources: (JsonRecord | null)[]): PharosDependency[] {
-  const dependencies = new Map<string, PharosDependency>();
-  for (const source of sources) {
-    if (!source) continue;
-    for (const item of dependencyCandidates(source)) {
-      const dep = normalizeDependency(item);
-      if (!dep) continue;
-      const key = dep.id ?? dep.symbol ?? dep.name;
-      const existing = dependencies.get(key);
-      if (!existing || dependencyCompleteness(dep) > dependencyCompleteness(existing)) {
-        dependencies.set(key, dep);
-      }
-    }
-  }
-  return [...dependencies.values()].sort((a, b) => (b.weightPct ?? -1) - (a.weightPct ?? -1));
-}
-
-function dependencyCandidates(source: JsonRecord): unknown[] {
-  const candidates: unknown[] = [];
-  const queue: unknown[] = [source];
-  const seen = new Set<unknown>();
-  while (queue.length > 0) {
-    const value = queue.shift();
-    if (!isObject(value) || seen.has(value)) continue;
-    seen.add(value);
-    for (const [key, child] of Object.entries(value)) {
-      const normalizedKey = key.toLowerCase();
-      const looksLikeDependency =
-        normalizedKey.includes("depend") ||
-        normalizedKey.includes("upstream") ||
-        normalizedKey.includes("constituent") ||
-        normalizedKey.includes("reserve") ||
-        normalizedKey.includes("collateral");
-      if (looksLikeDependency) {
-        if (Array.isArray(child)) candidates.push(...child);
-        else if (isObject(child)) {
-          const nested = child.items ?? child.dependencies ?? child.upstreams ?? child.breakdown ?? child.components;
-          if (Array.isArray(nested)) candidates.push(...nested);
-          else candidates.push(child);
-        }
-      }
-      if (isObject(child)) queue.push(child);
-      if (Array.isArray(child)) {
-        for (const item of child) if (isObject(item)) queue.push(item);
-      }
-    }
-  }
-  return candidates;
-}
-
-function normalizeDependencies(value: unknown): PharosDependency[] {
-  return Array.isArray(value) ? value.map(normalizeDependency).filter((dep): dep is PharosDependency => dep != null) : [];
-}
-
-function normalizeDependency(value: unknown): PharosDependency | null {
-  if (!isObject(value)) return null;
-  const id =
-    stringValue(value, "id") ??
-    stringValue(value, "coinId") ??
-    stringValue(value, "stablecoinId") ??
-    stringValue(value, "pharosStablecoinId") ??
-    stringValue(value, "dependencyId");
-  const symbol = stringValue(value, "symbol") ?? stringValue(value, "ticker") ?? stringValue(value, "assetSymbol");
-  const name =
-    stringValue(value, "name") ??
-    stringValue(value, "label") ??
-    stringValue(value, "asset") ??
-    stringValue(value, "dependency") ??
-    symbol ??
-    id;
+function normalizeRawDependency(dep: JsonRecord, cardById?: Map<string, JsonRecord>): PharosDependency | null {
+  const id = stringValue(dep, "id") ?? stringValue(dep, "coinId") ?? stringValue(dep, "stablecoinId");
+  const ownCard = id && cardById ? cardById.get(id) ?? null : null;
+  const symbol = stringValue(ownCard, "symbol") ?? stringValue(dep, "symbol");
+  const name = stringValue(ownCard, "name") ?? stringValue(dep, "name") ?? symbol ?? id;
   if (!name) return null;
-
-  const weightPct = pctValue(value, "weightPct") ?? pctValue(value, "weight") ?? pctValue(value, "sharePct") ?? pctValue(value, "share");
-  const safetyScore =
-    numberValue(value, "safetyScore") ??
-    numberValue(value, "score") ??
-    numberValue(value, "dependencyScore") ??
-    numberValue(value, "overallScore");
+  const weight = numberValue(dep, "weight") ?? numberValue(dep, "weightPct");
   return {
     id,
     name,
     symbol,
-    weightPct,
-    safetyScore,
-    safetyGrade: stringValue(value, "safetyGrade") ?? stringValue(value, "grade") ?? stringValue(value, "overallGrade"),
-    pharosUrl: stringValue(value, "url") ?? stringValue(value, "pharosUrl") ?? pharosStablecoinUrl(id),
-    relationship: stringValue(value, "relationship") ?? stringValue(value, "type") ?? stringValue(value, "source") ?? null,
+    weightPct: weight == null ? null : Math.abs(weight) <= 1 ? Math.round(weight * 1000) / 10 : weight,
+    safetyScore: numberValue(ownCard, "overallScore"),
+    safetyGrade: stringValue(ownCard, "overallGrade"),
+    pharosUrl: pharosStablecoinUrl(id),
+    relationship: stringValue(dep, "type") ?? stringValue(dep, "relationship"),
   };
 }
 
-function dependencyCompleteness(dep: PharosDependency) {
-  return [
-    dep.id,
-    dep.symbol,
-    dep.name,
-    dep.weightPct,
-    dep.safetyScore,
-    dep.safetyGrade,
-    dep.pharosUrl,
-    dep.relationship,
-  ].filter((value) => value != null && value !== "").length;
+function extractBridge(card: JsonRecord | null): PharosBridgeRoute | null {
+  const bridge = isObject(card?.bridgeRouteRisk) ? (card.bridgeRouteRisk as JsonRecord) : null;
+  if (!bridge) return null;
+  return { label: stringValue(bridge, "label"), score: numberValue(bridge, "score") };
 }
 
-function pctValue(value: JsonRecord, key: string) {
-  const raw = numberValue(value, key);
-  if (raw == null) return null;
-  return Math.abs(raw) <= 1 ? raw * 100 : raw;
+function normalizePeg(value: unknown): PharosPegHealth | null {
+  if (!isObject(value)) return null;
+  return {
+    score: numberValue(value, "score"),
+    grade: stringValue(value, "grade"),
+    activeDepeg: boolValue(value, "activeDepeg"),
+    activeDepegBps: numberValue(value, "activeDepegBps"),
+    depegEventCount: numberValue(value, "depegEventCount"),
+    lastEventAt: numberValue(value, "lastEventAt"),
+    yieldBearing: value.yieldBearing === true,
+  };
 }
 
-function timestampValue(value: JsonRecord, key: string) {
-  const raw = value[key];
-  if (typeof raw === "number" && Number.isFinite(raw)) {
-    return raw > 2_000_000_000 ? Math.floor(raw / 1000) : raw;
-  }
-  if (typeof raw === "string") {
-    const parsed = Date.parse(raw);
-    return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
-  }
-  return null;
+function normalizeDimensions(value: unknown): PharosDimension[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(isObject)
+    .map((dim) => ({
+      key: stringValue(dim, "key") ?? "",
+      label: stringValue(dim, "label") ?? humanizeKey(stringValue(dim, "key") ?? ""),
+      score: numberValue(dim, "score"),
+      grade: stringValue(dim, "grade"),
+      detail: stringValue(dim, "detail"),
+      items: Array.isArray(dim.items)
+        ? dim.items.filter(isObject).map((item) => ({
+            label: stringValue(item, "label"),
+            value: stringValue(item, "value"),
+            detail: stringValue(item, "detail"),
+          }))
+        : [],
+    }))
+    .filter((dim) => dim.key);
+}
+
+function normalizeDependencies(value: unknown): PharosDependency[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(isObject)
+    .map((dep) => ({
+      id: stringValue(dep, "id"),
+      name: stringValue(dep, "name") ?? stringValue(dep, "symbol") ?? stringValue(dep, "id") ?? "",
+      symbol: stringValue(dep, "symbol"),
+      weightPct: numberValue(dep, "weightPct"),
+      safetyScore: numberValue(dep, "safetyScore"),
+      safetyGrade: stringValue(dep, "safetyGrade"),
+      pharosUrl: stringValue(dep, "pharosUrl") ?? pharosStablecoinUrl(stringValue(dep, "id")),
+      relationship: stringValue(dep, "relationship"),
+    }))
+    .filter((dep) => dep.name);
+}
+
+function normalizeBridge(value: unknown): PharosBridgeRoute | null {
+  if (!isObject(value)) return null;
+  return { label: stringValue(value, "label"), score: numberValue(value, "score") };
+}
+
+function normalizeFreshness(value: unknown): PharosFreshnessFlags {
+  if (!isObject(value)) return { ...NO_FRESHNESS };
+  return {
+    fallback: value.fallback === true,
+    collateralDrift: value.collateralDrift === true,
+    stale: value.stale === true,
+  };
+}
+
+function humanizeKey(key: string) {
+  if (!key) return "";
+  const spaced = key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 function parseJson(value: string | null | undefined): unknown {
@@ -314,11 +277,15 @@ function parseJson(value: string | null | undefined): unknown {
 }
 
 function stringValue(value: unknown, key: string) {
-  return isObject(value) && typeof value[key] === "string" && value[key].trim() ? value[key].trim() : null;
+  return isObject(value) && typeof value[key] === "string" && value[key].trim() ? (value[key] as string).trim() : null;
 }
 
 function numberValue(value: unknown, key: string) {
-  return isObject(value) && typeof value[key] === "number" && Number.isFinite(value[key]) ? value[key] : null;
+  return isObject(value) && typeof value[key] === "number" && Number.isFinite(value[key]) ? (value[key] as number) : null;
+}
+
+function boolValue(value: unknown, key: string): boolean | null {
+  return isObject(value) && typeof value[key] === "boolean" ? (value[key] as boolean) : null;
 }
 
 function isObject(value: unknown): value is JsonRecord {

@@ -145,11 +145,19 @@ function buildUnderlyingSummaries(requiredIds: string[], stablecoinsBody: JsonRe
   const cardById = new Map(cards.map((entry) => [stringValue(entry, "id"), entry]).filter(([id]) => id != null) as [string, JsonRecord][]);
   const fixtureById = new Map(UNDERLYING_FIXTURES.map((entry) => [entry.pharosStablecoinId, entry]));
 
+  // Per-asset degradation signals live at the top level of /api/report-cards.
+  const context = {
+    cardById,
+    fallbackIds: new Set(readStringArray(reportCardsBody, "liveToFallbackCoins")),
+    driftIds: new Set(readArray(reportCardsBody, "collateralDriftCoins").map((entry) => stringValue(entry, "id")).filter((id): id is string => id != null)),
+    stale: boolValue(reportCardsBody, "liquidityStale") === true || boolValue(reportCardsBody, "redemptionStale") === true,
+  };
+
   return requiredIds.map((id) => {
     const coin = stablecoinById.get(id) ?? null;
     const card = cardById.get(id) ?? null;
     const fixture = fixtureById.get(id) ?? null;
-    const extras = extractReportCardExtras({ id, card, coin, fixture });
+    const extras = extractReportCardExtras({ id, card, fixture, context });
 
     return {
       pharosStablecoinId: id,
@@ -159,9 +167,16 @@ function buildUnderlyingSummaries(requiredIds: string[], stablecoinsBody: JsonRe
       supplyUsd: supplyUsd(coin) ?? fixture?.supplyUsd ?? null,
       underlyingSafetyScore: numberValue(card, "overallScore"),
       underlyingSafetyGrade: stringValue(card, "overallGrade"),
+      overallBaseScore: extras.overallBaseScore,
       pharosUrl: extras.pharosUrl,
-      dews: extras.dews,
+      peg: extras.peg,
+      dimensions: extras.dimensions,
       upstreamDependencies: extras.upstreamDependencies,
+      variantKind: extras.variantKind,
+      variantParentId: extras.variantParentId,
+      navToken: extras.navToken,
+      bridgeRoute: extras.bridgeRoute,
+      freshness: extras.freshness,
       summary: extras.summary,
       sourceUpdatedAt: updatedAtFromBody(reportCardsBody) ?? updatedAtFromBody(stablecoinsBody) ?? fetchedAt,
       fetchedAt,
@@ -217,6 +232,15 @@ function errorCacheEntry(endpoint: string, fetchedAt: number, warning: string): 
 function readArray(body: JsonRecord, key: string): JsonRecord[] {
   const value = body[key];
   return Array.isArray(value) ? value.filter(isObject) : [];
+}
+
+function readStringArray(body: JsonRecord, key: string): string[] {
+  const value = body[key];
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+}
+
+function boolValue(value: unknown, key: string): boolean | null {
+  return isObject(value) && typeof value[key] === "boolean" ? (value[key] as boolean) : null;
 }
 
 function supplyUsd(coin: JsonRecord | null) {

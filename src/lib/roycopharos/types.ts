@@ -31,22 +31,62 @@ export interface UnderlyingSummary {
   name: string;
   price: number | null;
   supplyUsd: number | null;
+  // Pharos overall vault/base-asset score (verbatim) and its pre-cap base score.
   underlyingSafetyScore: number | null;
   underlyingSafetyGrade: string | null;
+  overallBaseScore: number | null;
   pharosUrl: string | null;
-  dews: PharosDewsSignal | null;
+  // Peg health — Pharos pegStability dimension plus structured depeg facts from rawInputs.
+  peg: PharosPegHealth | null;
+  // The five Pharos report-card dimensions, shown verbatim as the base-asset breakdown.
+  dimensions: PharosDimension[];
+  // What the base asset is backed by, each resolved to its own Pharos grade.
   upstreamDependencies: PharosDependency[];
+  variantKind: string | null;
+  variantParentId: string | null;
+  navToken: boolean | null;
+  bridgeRoute: PharosBridgeRoute | null;
+  // Per-asset degradation flags so the source badge can stay honest without a mode word.
+  freshness: PharosFreshnessFlags;
   summary: string;
   sourceUpdatedAt: number | null;
   fetchedAt: number | null;
 }
 
-export interface PharosDewsSignal {
-  status: string;
-  stressScore: number | null;
-  summary: string | null;
-  observedAt: number | null;
-  updatedAt: number | null;
+export interface PharosPegHealth {
+  score: number | null;
+  grade: string | null;
+  activeDepeg: boolean | null;
+  activeDepegBps: number | null;
+  depegEventCount: number | null;
+  lastEventAt: number | null;
+  yieldBearing: boolean;
+}
+
+export interface PharosDimensionItem {
+  label: string | null;
+  value: string | null;
+  detail: string | null;
+}
+
+export interface PharosDimension {
+  key: string;
+  label: string;
+  score: number | null;
+  grade: string | null;
+  detail: string | null;
+  items: PharosDimensionItem[];
+}
+
+export interface PharosBridgeRoute {
+  label: string | null;
+  score: number | null;
+}
+
+export interface PharosFreshnessFlags {
+  fallback: boolean;
+  collateralDrift: boolean;
+  stale: boolean;
 }
 
 export interface PharosDependency {

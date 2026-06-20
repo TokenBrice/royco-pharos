@@ -51,40 +51,59 @@ describe("Pharos client", () => {
     expect(expiredResult.mode).toBe("fixture");
   });
 
-  it("passes DEWS, Pharos profile URL, and upstream dependencies through live report cards", async () => {
+  it("passes peg health, dimensions, and resolved upstream dependencies through live report cards", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string | URL | Request) => {
         const href = String(url);
         if (href.endsWith("/api/stablecoins")) {
           return Response.json({
-            peggedAssets: [{ id: "savusd-avant", symbol: "savUSD", name: "Avant Staked USD", price: 1.01 }],
+            peggedAssets: [
+              { id: "savusd-avant", symbol: "savUSD", name: "Avant Staked USD", price: 1.01, circulating: { peggedUSD: 44_000_000 } },
+            ],
           });
         }
         return Response.json({
+          liveToFallbackCoins: [],
+          collateralDriftCoins: [],
           cards: [
             {
               id: "savusd-avant",
               symbol: "savUSD",
-              overallScore: 36,
-              overallGrade: "F",
-              dews: { status: "watch", stressScore: 31, message: "Mild peg stress." },
+              overallScore: 41,
+              overallGrade: "D",
+              baseScore: 40.9,
               dimensions: {
-                dependencyRisk: {
-                  detail: "Parent exposure dominates the dependency risk.",
-                  dependencies: [
-                    {
-                      id: "avusd-avant",
-                      symbol: "avUSD",
-                      name: "Avant USD",
-                      weight: 1,
-                      overallScore: 35,
-                      overallGrade: "F",
-                    },
+                pegStability: {
+                  score: 99,
+                  grade: "A+",
+                  detail: "Peg reference (avUSD): 99/100.",
+                  detailItems: [
+                    { label: "Peg reference (avUSD)", value: "99/100", detail: "Peg reference (avUSD): 99/100" },
+                    { label: "Adjustment", value: "Yield-bearing", detail: "yield-bearing — expected price appreciation excluded" },
                   ],
                 },
+                dependencyRisk: {
+                  score: 32,
+                  grade: "F",
+                  detail: "Parent exposure dominates the dependency risk.",
+                  detailItems: [],
+                },
               },
+              rawInputs: {
+                pegScore: 99,
+                activeDepeg: false,
+                activeDepegBps: null,
+                depegEventCount: 5,
+                lastEventAt: 1_771_988_584,
+                dependencies: [{ id: "avusd-avant", weight: 1, type: "wrapper" }],
+                variantParentId: "avusd-avant",
+                variantKind: "strategy-vault",
+                navToken: true,
+              },
+              bridgeRouteRisk: { tier: "single-chain-or-native", score: 100, label: "Single-chain or issuer-native route", summary: "native route" },
             },
+            { id: "avusd-avant", symbol: "avUSD", name: "Avant USD", overallScore: 42, overallGrade: "D" },
           ],
         });
       }),
@@ -95,27 +114,35 @@ describe("Pharos client", () => {
       apiBase: "https://pharos.test",
     });
 
-    expect(result.underlyings[0]).toMatchObject({
+    const underlying = result.underlyings[0];
+    expect(underlying).toMatchObject({
       pharosStablecoinId: "savusd-avant",
+      underlyingSafetyScore: 41,
+      underlyingSafetyGrade: "D",
+      overallBaseScore: 40.9,
       pharosUrl: "https://pharos.watch/stablecoin/savusd-avant/",
-      dews: {
-        status: "watch",
-        stressScore: 31,
-        summary: "Mild peg stress.",
-      },
+      peg: { score: 99, grade: "A+", activeDepeg: false, depegEventCount: 5, yieldBearing: true },
+      variantKind: "strategy-vault",
+      navToken: true,
+      bridgeRoute: { label: "Single-chain or issuer-native route", score: 100 },
+      summary: "Parent exposure dominates the dependency risk.",
       upstreamDependencies: [
         {
           id: "avusd-avant",
           name: "Avant USD",
           symbol: "avUSD",
           weightPct: 100,
-          safetyScore: 35,
-          safetyGrade: "F",
+          safetyScore: 42,
+          safetyGrade: "D",
           pharosUrl: "https://pharos.watch/stablecoin/avusd-avant/",
+          relationship: "wrapper",
         },
       ],
-      summary: "Parent exposure dominates the dependency risk.",
     });
+    expect(underlying.dimensions.map((dimension) => dimension.key)).toEqual(["pegStability", "dependencyRisk"]);
+    expect(underlying.dimensions[0]).toMatchObject({ label: "Peg Stability", score: 99, grade: "A+" });
+    // DEWS is no longer modeled by Pharos — it must not reappear on the summary.
+    expect(underlying).not.toHaveProperty("dews");
   });
 });
 
@@ -128,9 +155,16 @@ function fallbackUnderlying(fetchedAt: number): UnderlyingSummary {
     supplyUsd: 1_000_000,
     underlyingSafetyScore: 92,
     underlyingSafetyGrade: "A",
+    overallBaseScore: 90,
     pharosUrl: "https://pharos.watch/stablecoin/autousd/",
-    dews: null,
+    peg: null,
+    dimensions: [],
     upstreamDependencies: [],
+    variantKind: null,
+    variantParentId: null,
+    navToken: null,
+    bridgeRoute: null,
+    freshness: { fallback: false, collateralDrift: false, stale: false },
     summary: "cached",
     sourceUpdatedAt: fetchedAt,
     fetchedAt,
