@@ -133,11 +133,31 @@ function extractDimensions(card: JsonRecord | null): PharosDimension[] {
 
 function extractDimensionItems(dim: JsonRecord): PharosDimensionItem[] {
   const items = Array.isArray(dim.detailItems) ? dim.detailItems : [];
-  return items.filter(isObject).map((item) => ({
-    label: stringValue(item, "label"),
-    value: stringValue(item, "value"),
-    detail: stringValue(item, "detail"),
-  }));
+  return items
+    .filter(isObject)
+    .map((item) => refineDimensionItem(stringValue(item, "label"), stringValue(item, "value"), stringValue(item, "detail")));
+}
+
+/**
+ * Pharos sends a generic "Detail" placeholder label whenever the metric name is baked into the
+ * value string (mostly Liquidity and Peg Stability sub-metrics). Replace that placeholder with a
+ * concise label derived from the self-describing value, and trim the now-duplicated descriptor out
+ * of the value. Meaningful upstream labels pass through untouched; unrecognized notes drop the
+ * placeholder and render as a single self-describing line rather than a row labelled "Detail".
+ */
+function refineDimensionItem(label: string | null, value: string | null, detail: string | null): PharosDimensionItem {
+  if (label && !/^detail$/i.test(label)) return { label, value, detail };
+  const v = (value ?? "").trim();
+  let m: RegExpMatchArray | null;
+  if ((m = v.match(/^DEX liquidity\b\s*(.*)$/i))) return { label: "DEX liquidity", value: m[1] || "unavailable", detail };
+  if ((m = v.match(/^(\d[\d,]*)\s+pools?\s+across\s+(.+)$/i))) return { label: "Pools", value: `${m[1]} across ${m[2]}`, detail };
+  if ((m = v.match(/^Redemption backstop\s*(.*)$/i))) return { label: "Redemption backstop", value: m[1] || null, detail };
+  if (/\bredeem$/i.test(v)) return { label: "Redemption", value: v, detail };
+  if ((m = v.match(/^immediate capacity\s*(.*)$/i))) return { label: "Immediate capacity", value: m[1] || null, detail };
+  if ((m = v.match(/^(\d+)\s+depeg events?$/i))) return { label: "Depeg events", value: m[1], detail };
+  if (/^No depeg events recorded$/i.test(v)) return { label: "Depeg events", value: "None recorded", detail };
+  if (/^active depeg$/i.test(v)) return { label: "Peg status", value: "Active depeg", detail };
+  return { label: null, value: v || value, detail };
 }
 
 function extractPeg(card: JsonRecord | null): PharosPegHealth | null {
@@ -217,11 +237,9 @@ function normalizeDimensions(value: unknown): PharosDimension[] {
       grade: stringValue(dim, "grade"),
       detail: stringValue(dim, "detail"),
       items: Array.isArray(dim.items)
-        ? dim.items.filter(isObject).map((item) => ({
-            label: stringValue(item, "label"),
-            value: stringValue(item, "value"),
-            detail: stringValue(item, "detail"),
-          }))
+        ? dim.items
+            .filter(isObject)
+            .map((item) => refineDimensionItem(stringValue(item, "label"), stringValue(item, "value"), stringValue(item, "detail")))
         : [],
     }))
     .filter((dim) => dim.key);
